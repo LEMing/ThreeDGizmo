@@ -1,6 +1,6 @@
 {
   "name": "threedgizmo",
-  "private": true,
+  "private": false,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -11,11 +11,22 @@
     "prepublishOnly": "npm run build && npm run test",
     "postpublish": "echo 'Published successfully!'"
   },
-  "dependencies": {
-    "@types/three": "^0.168.0",
+  "files": [
+    "dist",
+    "!dist/__tests__",
+    "!dist/__mocks__"
+  ],
+  "main": "dist/three-d-gizmo.umd.js",
+  "module": "dist/three-d-gizmo.es.js",
+  "types": "dist/index.d.ts",
+  "peerDependencies": {
+    "three": "0.168.0",
+    "@types/three": "0.168.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "three": "^0.168.0"
+    "react-dom": "^18.3.1"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.8",
