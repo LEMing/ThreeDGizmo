@@ -20,10 +20,10 @@
   "module": "dist/three-d-gizmo.es.js",
   "types": "dist/index.d.ts",
   "peerDependencies": {
-    "three": "0.168.0",
     "@types/three": "0.168.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "three": "0.168.0"
   },
   "publishConfig": {
     "access": "public"
@@ -41,6 +41,7 @@
     "ts-jest": "^29.2.4",
     "typescript": "^5.5.3",
     "vite": "^5.4.1",
+    "vite-plugin-css-injected-by-js": "^3.5.1",
     "vite-plugin-dts": "^4.0.3"
   }
 }
