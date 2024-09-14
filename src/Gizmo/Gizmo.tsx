@@ -1,18 +1,20 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, {HTMLAttributes, useCallback, useEffect, useMemo, useRef} from 'react';
 import * as THREE from 'three';
+import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 import { syncGizmoCameraWithMain, syncMainCameraWithGizmo } from './CameraController';
 import getWebGLRenderer from './getWebGLRenderer';
 import GizmoControl from './GizmoControl';
+import './Gizmo.css';
 
-interface GizmoProps {
+interface GizmoProps extends HTMLAttributes<HTMLDivElement> {
   camera: THREE.Camera | null;
-  controls: OrbitControls | null;
+  controls: OrbitControls | MapControls | null;
   render: () => void;
 }
 
-const Gizmo: React.FC<GizmoProps> = ({ camera, controls, render }) => {
+const Gizmo: React.FC<GizmoProps> = ({ camera, className, controls, render }) => {
   const gizmoRef = useRef<HTMLDivElement | null>(null);
   const gizmoScene = useRef(new THREE.Scene()).current;
   const gizmoRenderer = useRef(getWebGLRenderer()).current;
@@ -79,18 +81,14 @@ const Gizmo: React.FC<GizmoProps> = ({ camera, controls, render }) => {
     renderGizmo();
   }, [camera, renderGizmo]);
 
+  const styling = useMemo(() => {
+    return 'gizmo-default' + (className ? ` ${className}` : '');
+  }, [className])
+
   return (
     <div
+      className={styling}
       ref={gizmoRef}
-      style={{
-        width: '100px',
-        height: '100px',
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        zIndex: 2,
-        cursor: 'pointer',
-      }}
     />
   );
 };

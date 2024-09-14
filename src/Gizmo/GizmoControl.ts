@@ -1,6 +1,7 @@
 // imports
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { addLighting } from './addLighting';
 import { GizmoCube } from './GizmoCube';
 
@@ -13,7 +14,7 @@ interface GizmoParams {
 
 interface MainParams {
   mainCamera: THREE.Camera;
-  mainControls: OrbitControls;
+  mainControls: OrbitControls | MapControls;
   renderGizmo: () => void;
 }
 
@@ -34,7 +35,7 @@ class GizmoControl {
   private gizmoRenderer: THREE.WebGLRenderer;
   private gizmoCamera: THREE.PerspectiveCamera;
   private mainCamera: THREE.Camera;
-  private mainControls: OrbitControls;
+  private mainControls: OrbitControls | MapControls;
   private renderGizmo: () => void;
   private gizmoControls: OrbitControls;
   private onChangeMainControlsListener: () => void = () => {};
