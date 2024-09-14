@@ -1,7 +1,6 @@
 import * as THREE from 'three';
-import {LightningOptions} from '../types';
 
-export const addLighting = (scene: THREE.Scene, options: LightningOptions = defaultLightningOptions) => {
+export const addLighting = (scene: THREE.Scene, options = defaultLightningOptions) => {
   // Ambient Light
   const ambientLight = new THREE.AmbientLight(
     options.ambientLight.color,
