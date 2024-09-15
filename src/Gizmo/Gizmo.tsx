@@ -1,4 +1,4 @@
-import React, {HTMLAttributes, useCallback, useEffect, useRef} from 'react';
+import React, { HTMLAttributes, useCallback, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -22,8 +22,26 @@ const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) =>
 
   const raycaster = useRef(new THREE.Raycaster()).current;
   const mouse = useRef(new THREE.Vector2()).current;
-  const hoveredObject = useRef<THREE.Object3D | null>(null);
-  const originalColor = useRef<THREE.Color | null>(null);
+
+  const checkIntersection = useCallback(() => {
+    if (!gizmoCamera || !gizmoScene) return null;
+
+    raycaster.setFromCamera(mouse, gizmoCamera);
+    const intersects = raycaster.intersectObjects(gizmoScene.children, true);
+    const exceptions = ['Wireframe', ''];
+    const filtered = intersects.filter(intersect => !exceptions.includes(intersect.object.name));
+
+    return filtered.length > 0 ? filtered[0].object : null;
+  }, [gizmoCamera, gizmoScene, raycaster, mouse]);
+
+  const onClick = useCallback((event: MouseEvent) => {
+    const intersectedObject = checkIntersection();
+
+    if (intersectedObject) {
+      const gizmoCube = intersectedObject?.userData.gizmoCube;
+      gizmoCube.handleClick();
+    }
+  }, [checkIntersection, gizmoScene]);
 
   // Обработчик изменения материала при наведении
   const onMouseMove = useCallback((event: MouseEvent) => {
@@ -38,29 +56,21 @@ const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) =>
     const intersects = raycaster.intersectObjects(gizmoScene.children, true);
     const exceptions = ['Wireframe', ''];
     const filtered = intersects.filter(intersect => !exceptions.includes(intersect.object.name));
+
     if (filtered.length > 0) {
-      const firstIntersected = filtered[0].object as THREE.Mesh;
-      const material = firstIntersected.material as THREE.MeshStandardMaterial;
-
-      // Проверяем, не меняем ли мы материал того же объекта
-      if (hoveredObject.current !== firstIntersected) {
-        // Возвращаем цвет предыдущему объекту
-        if (hoveredObject.current && originalColor.current) {
-          (hoveredObject.current.material as THREE.MeshStandardMaterial).color.set(originalColor.current);
-        }
-
-        // Сохраняем текущий объект и его цвет
-        hoveredObject.current = firstIntersected;
-        originalColor.current = material.color.clone();
-
-        // Изменяем цвет при наведении
-        material.color.set(0xAFC7E5);
+      const firstIntersected = filtered[0].object;
+      if (firstIntersected.userData.gizmoCube) {
+        firstIntersected.userData.gizmoCube.highlightObject(firstIntersected);
       }
-    } else if (hoveredObject.current && originalColor.current) {
-      // Возвращаем исходный цвет, если курсор ушел с объекта
-      (hoveredObject.current.material as THREE.MeshStandardMaterial).color.set(originalColor.current);
-      hoveredObject.current = null;
+    } else {
+      // Если нет пересечений, сбрасываем выделение
+      const anyObject = gizmoScene.children[0];
+      if (anyObject && anyObject.userData.gizmoCube) {
+        anyObject.userData.gizmoCube.highlightObject(null);
+      }
     }
+
+    renderGizmo();
   }, [gizmoRenderer, gizmoCamera, gizmoScene]);
 
   // Принудительный рендеринг Gizmo
@@ -106,6 +116,7 @@ const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) =>
 
     // Добавляем обработчики событий для мыши
     gizmoDiv.addEventListener('mousemove', onMouseMove);
+    gizmoDiv.addEventListener('click', onClick);
 
     return () => {
       if (gizmoControlRef.current) {
@@ -115,8 +126,9 @@ const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) =>
 
       // Убираем обработчики событий
       gizmoDiv.removeEventListener('mousemove', onMouseMove);
+      gizmoDiv.removeEventListener('click', onClick);
     };
-  }, [camera, controls, renderGizmo, onMouseMove]);
+  }, [camera, controls, renderGizmo, onMouseMove, onClick]);
 
   // Синхронизация камеры Gizmo с основной камерой
   useEffect(() => {
