@@ -24,18 +24,19 @@ export class GizmoCube {
     canvas.width = this.CANVAS_SIZE;
     canvas.height = this.CANVAS_SIZE;
 
-    // Устанавливаем цвет фона для канваса
-    context!.fillStyle = this.BACKGROUND_COLOR;
-    context!.fillRect(0, 0, canvas.width, canvas.height);
+    // Устанавливаем полностью прозрачный фон
+    context!.clearRect(0, 0, canvas.width, canvas.height); // Прозрачный фон
 
     // Настраиваем свойства текста и рисуем текст на канвасе
     context!.font = `${this.FONT_SIZE} Arial`;
-    context!.fillStyle = this.TEXT_COLOR;
+    context!.fillStyle = this.TEXT_COLOR;  // Цвет текста (непрозрачный)
     context!.textAlign = this.TEXT_ALIGN as CanvasTextAlign;
     context!.textBaseline = this.TEXT_BASELINE as CanvasTextBaseline;
     context!.fillText(text, canvas.width / 2, canvas.height / 2);
 
-    return new THREE.CanvasTexture(canvas);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;  // Убедимся, что текстура обновляется
+    return texture;
   }
 
   private _create() {
@@ -121,29 +122,51 @@ export class GizmoCube {
     const faceLabels = ['RIGHT', 'LEFT', 'TOP', 'BOTTOM', 'FRONT', 'BACK'];
     const facePositions = [
       { pos: [0, 0, halfSize], rotation: [0, 0, 0] }, // Front
-      { pos: [0, 0, -halfSize], rotation: [0, 0, 0] }, // Back
+      { pos: [0, 0, -halfSize], rotation: [0, Math.PI, 0] }, // Back (был неправильно ориентирован, поправил)
       { pos: [halfSize, 0, 0], rotation: [0, Math.PI / 2, 0] }, // Right
-      { pos: [-halfSize, 0, 0], rotation: [0, Math.PI / 2, 0] }, // Left
-      { pos: [0, halfSize, 0], rotation: [Math.PI / 2, 0, 0] }, // Top
+      { pos: [-halfSize, 0, 0], rotation: [0, -Math.PI / 2, 0] }, // Left (знак вращения)
+      { pos: [0, halfSize, 0], rotation: [-Math.PI / 2, 0, 0] }, // Top (знак вращения)
       { pos: [0, -halfSize, 0], rotation: [Math.PI / 2, 0, 0] }, // Bottom
     ];
 
     facePositions.forEach(({ pos, rotation }, index) => {
-      const faceGeometry = new THREE.BoxGeometry(this.CUBE_SIZE - this.EDGE_SECTION_SIZE, this.CUBE_SIZE - this.EDGE_SECTION_SIZE, this.FACE_THICKNESS);
+      // Создаем отдельную группу для бокса и текстового плейна
+      const faceGroup = new THREE.Group();
+
+      // Основной материал для бокс-грани
+      const faceGeometry = new THREE.BoxGeometry(
+        this.CUBE_SIZE - this.EDGE_SECTION_SIZE,
+        this.CUBE_SIZE - this.EDGE_SECTION_SIZE,
+        this.FACE_THICKNESS
+      );
       const faceMaterial = new THREE.MeshStandardMaterial({
-        map: this.createTextTexture(faceLabels[index]),
-        transparent: true,
-        opacity: this.FACE_OPACITY,
+        color: 0xE7E7E7,  // Цвет фона (бежевый)
       });
       const faceMesh = new THREE.Mesh(faceGeometry, faceMaterial);
-      faceMesh.position.set(pos[0], pos[1], pos[2]);
-      faceMesh.rotation.set(rotation[0], rotation[1], rotation[2]);
       faceMesh.name = `Face Box ${faceLabels[index]}`;
-      group.add(faceMesh);
+      faceGroup.add(faceMesh);
+
+      // Прозрачный плейн для текстуры
+      const planeGeometry = new THREE.PlaneGeometry(this.CUBE_SIZE - this.EDGE_SECTION_SIZE, this.CUBE_SIZE - this.EDGE_SECTION_SIZE);
+      const textMaterial = new THREE.MeshStandardMaterial({
+        map: this.createTextTexture(faceLabels[index]),  // Текстура с текстом
+        transparent: true,  // Включаем прозрачность
+        depthWrite: false,  // Отключаем запись в буфер глубины для текстуры
+      });
+      const textPlane = new THREE.Mesh(planeGeometry, textMaterial);
+      textPlane.position.set(0, 0, this.FACE_THICKNESS / 2 + 0.01); // Поднимаем текстовый плейн немного над поверхностью
+      faceGroup.add(textPlane);
+
+      // Позиционируем и поворачиваем всю группу
+      faceGroup.position.set(pos[0], pos[1], pos[2]);
+      faceGroup.rotation.set(rotation[0], rotation[1], rotation[2]);
+
+      group.add(faceGroup);
     });
 
     return group;
   }
+
 
   public create() {
     return this._create();

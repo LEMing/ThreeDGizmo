@@ -54,7 +54,7 @@ const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) =>
         originalColor.current = material.color.clone();
 
         // Изменяем цвет при наведении
-        material.color.set(0xff0000);
+        material.color.set(0xAFC7E5);
       }
     } else if (hoveredObject.current && originalColor.current) {
       // Возвращаем исходный цвет, если курсор ушел с объекта
