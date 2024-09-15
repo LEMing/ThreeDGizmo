@@ -64,7 +64,7 @@ class GizmoControl {
 
   private initializeRenderer() {
     this.gizmoRenderer.setPixelRatio(window.devicePixelRatio);
-    this.gizmoRenderer.setSize(100, 100);
+    this.gizmoRenderer.setSize(this.gizmoDiv.clientWidth, this.gizmoDiv.clientHeight);
     this.gizmoDiv.appendChild(this.gizmoRenderer.domElement);
   }
 
@@ -80,6 +80,8 @@ class GizmoControl {
     this.mainControls.addEventListener('change', this.onChangeMainControlsListener);
 
     this.gizmoControls.enableZoom = false;
+    this.gizmoControls.enablePan = false;
+    this.gizmoControls.rotateSpeed = 0.5;
     this.gizmoControls.update();
 
     this.onChangeGizmoControlsListener = () => {
