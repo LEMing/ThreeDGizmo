@@ -4,9 +4,8 @@ import { Axis } from './types';
 import { TextureFactory } from './TextureFactory';
 
 export class CubePartFactory {
-  static createWireframe(): THREE.LineSegments {
-    const side = CUBE_CONSTANTS.CUBE_SIZE + CUBE_CONSTANTS.EDGE_SECTION_SIZE;
-    const geometry = new THREE.BoxGeometry(side, side, side);
+  static createWireframe([x, y, z]: number[]): THREE.LineSegments {
+    const geometry = new THREE.BoxGeometry(x, y, z);
     const edges = new THREE.EdgesGeometry(geometry);
     const lineMaterial = new THREE.LineBasicMaterial({ color: CUBE_CONSTANTS.LINE_COLOR });
     const wireframe = new THREE.LineSegments(edges, lineMaterial);

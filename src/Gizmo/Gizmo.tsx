@@ -1,4 +1,4 @@
-import React, { HTMLAttributes, useCallback, useEffect, useRef } from 'react';
+import React, { HTMLAttributes, useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -6,6 +6,7 @@ import { syncGizmoCameraWithMain, syncMainCameraWithGizmo } from './CameraContro
 import getWebGLRenderer from './getWebGLRenderer';
 import GizmoControl from './GizmoControl';
 import './Gizmo.css';
+import {GizmoCube} from './GizmoCube';
 
 interface GizmoProps extends HTMLAttributes<HTMLDivElement> {
   camera: THREE.Camera | null;
@@ -19,51 +20,101 @@ const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) =>
   const gizmoRenderer = useRef(getWebGLRenderer()).current;
   const gizmoCamera = useRef(new THREE.PerspectiveCamera(50, 1, 0.1, 100)).current;
   const gizmoControlRef = useRef<GizmoControl | null>(null);
+  const [isRotating, setIsRotating] = useState(false);
+  const clickStartTime = useRef<number | null>(null);
+  const clickStartPosition = useRef<{ x: number; y: number } | null>(null);
 
   const raycaster = useRef(new THREE.Raycaster()).current;
   const mouse = useRef(new THREE.Vector2()).current;
 
-  const checkIntersection = useCallback(() => {
-    if (!gizmoCamera || !gizmoScene) return null;
+  const renderGizmo = useCallback(() => {
+    if (!gizmoRenderer) return;
+    render();
+    gizmoRenderer.render(gizmoScene, gizmoCamera);
+  }, [render, gizmoRenderer, gizmoScene, gizmoCamera]);
 
-    raycaster.setFromCamera(mouse, gizmoCamera);
-    const intersects = raycaster.intersectObjects(gizmoScene.children, true);
-    const exceptions = ['Wireframe', ''];
-    const filtered = intersects.filter(intersect => !exceptions.includes(intersect.object.name));
+  const animateCameraToPosition = (startPosition: THREE.Vector3, targetPosition: THREE.Vector3, duration: number, onUpdate: () => void) => {
+    const startTime = performance.now();
 
-    return filtered.length > 0 ? filtered[0].object : null;
-  }, [gizmoCamera, gizmoScene, raycaster, mouse]);
+    const animate = () => {
+      const elapsedTime = performance.now() - startTime;
+      const t = Math.min(elapsedTime / duration, 1); // Нормализуем t в пределах от 0 до 1
 
-  const onClick = useCallback((event: MouseEvent) => {
-    const intersectedObject = checkIntersection();
+      // Линейная интерполяция между начальной и целевой позицией
+      camera!.position.lerpVectors(startPosition, targetPosition, t);
 
-    if (intersectedObject) {
-      const gizmoCube = intersectedObject?.userData.gizmoCube;
-      gizmoCube.handleClick();
-    }
-  }, [checkIntersection, gizmoScene]);
+      // Обновляем контролы и рендерим сцену
+      controls?.update();
+      onUpdate();
 
-  // Обработчик изменения материала при наведении
-  const onMouseMove = useCallback((event: MouseEvent) => {
-    if (!gizmoRenderer || !gizmoCamera || !gizmoScene) return;
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
 
+    requestAnimationFrame(animate);
+  };
+
+  const alignCameraWithVector = useCallback((vector: THREE.Vector3) => {
+    if (!camera || !controls) return;
+
+    const distance = camera.position.length(); // Сохраняем текущее расстояние от центра
+    const newPosition = vector.clone().multiplyScalar(distance);
+
+    // Запускаем анимацию перехода
+    animateCameraToPosition(camera.position.clone(), newPosition, 400, renderGizmo);
+
+    // Направляем камеру на центр сцены
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+    // Обновляем up-вектор камеры
+    camera.up.set(0, 1, 0);
+
+    // Обновляем контролы
+    controls.target.set(0, 0, 0);
+  }, [camera, controls, renderGizmo]);
+
+  const updateMousePosition = useCallback((event: MouseEvent) => {
+    if (!gizmoRenderer) return;
     const rect = gizmoRenderer.domElement.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  }, [gizmoRenderer, mouse]);
 
+  const checkIntersection = useCallback(() => {
+    if (!gizmoCamera || !gizmoScene) return null;
     raycaster.setFromCamera(mouse, gizmoCamera);
-
     const intersects = raycaster.intersectObjects(gizmoScene.children, true);
     const exceptions = ['Wireframe', ''];
-    const filtered = intersects.filter(intersect => !exceptions.includes(intersect.object.name));
+    return intersects.find(intersect => !exceptions.includes(intersect.object.name))?.object || null;
+  }, [gizmoCamera, gizmoScene, raycaster, mouse]);
 
-    if (filtered.length > 0) {
-      const firstIntersected = filtered[0].object;
-      if (firstIntersected.userData.gizmoCube) {
-        firstIntersected.userData.gizmoCube.highlightObject(firstIntersected);
+  const handleClick = useCallback((intersectedObject: THREE.Object3D | null) => {
+    const gizmoCube: GizmoCube = intersectedObject?.userData.gizmoCube;
+    if (intersectedObject && gizmoCube) {
+      gizmoCube.handleClick();
+      const vectorToCube = gizmoCube.vectorToCube;
+      if (vectorToCube) {
+        alignCameraWithVector(vectorToCube);
       }
+    }
+  }, [alignCameraWithVector]);
+
+  const onMouseDown = useCallback((event: MouseEvent) => {
+    clickStartTime.current = Date.now();
+    clickStartPosition.current = { x: event.clientX, y: event.clientY };
+    setIsRotating(false);
+
+  }, []);
+
+  const onMouseMove = useCallback((event: MouseEvent) => {
+    if (!gizmoControlRef.current) return; // Проверяем, инициализирован ли gizmoControlRef
+    updateMousePosition(event);
+    const intersectedObject = checkIntersection();
+
+    if (intersectedObject && intersectedObject.userData.gizmoCube) {
+      intersectedObject.userData.gizmoCube.highlightObject(intersectedObject);
     } else {
-      // Если нет пересечений, сбрасываем выделение
       const anyObject = gizmoScene.children[0];
       if (anyObject && anyObject.userData.gizmoCube) {
         anyObject.userData.gizmoCube.highlightObject(null);
@@ -71,20 +122,27 @@ const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) =>
     }
 
     renderGizmo();
-  }, [gizmoRenderer, gizmoCamera, gizmoScene]);
+  }, [updateMousePosition, checkIntersection, gizmoScene, renderGizmo]);
 
-  // Принудительный рендеринг Gizmo
-  const renderGizmo = useCallback(() => {
-    if (!gizmoRenderer) return;
-    render();
-    gizmoRenderer.render(gizmoScene, gizmoCamera);
-  }, [render, gizmoRenderer, gizmoScene, gizmoCamera]);
+
+  const onMouseUp = useCallback((event: MouseEvent) => {
+    const clickDuration = clickStartTime.current ? Date.now() - clickStartTime.current : 0;
+    if (!isRotating && clickDuration < 200) {
+      updateMousePosition(event);
+      const intersectedObject = checkIntersection();
+      handleClick(intersectedObject);
+    }
+    clickStartTime.current = null;
+    clickStartPosition.current = null;
+    setIsRotating(false);
+
+  }, [isRotating, updateMousePosition, checkIntersection, handleClick]);
 
   useEffect(() => {
     const gizmoDiv = gizmoRef.current;
     if (!gizmoDiv || !camera || !controls || !gizmoRenderer) return;
 
-    // Если уже есть инстанс GizmoControl, очищаем его
+    // Инициализация GizmoControl
     if (gizmoControlRef.current) {
       gizmoControlRef.current.dispose();
     }
@@ -107,30 +165,29 @@ const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) =>
       syncMainCameraWithGizmo,
     };
 
-    // Создаем инстанс GizmoControl
     gizmoControlRef.current = new GizmoControl({
       gizmoParams,
       mainParams,
       syncFunctions,
     });
 
-    // Добавляем обработчики событий для мыши
+    // Добавляем обработчики событий на DOM элемент
+    gizmoDiv.addEventListener('mousedown', onMouseDown);
     gizmoDiv.addEventListener('mousemove', onMouseMove);
-    gizmoDiv.addEventListener('click', onClick);
+    gizmoDiv.addEventListener('mouseup', onMouseUp);
 
     return () => {
       if (gizmoControlRef.current) {
         gizmoControlRef.current.dispose();
         gizmoControlRef.current = null;
       }
-
-      // Убираем обработчики событий
+      gizmoDiv.removeEventListener('mousedown', onMouseDown);
       gizmoDiv.removeEventListener('mousemove', onMouseMove);
-      gizmoDiv.removeEventListener('click', onClick);
+      gizmoDiv.removeEventListener('mouseup', onMouseUp);
     };
-  }, [camera, controls, renderGizmo, onMouseMove, onClick]);
+  }, [camera, controls, renderGizmo, onMouseMove, onMouseDown, onMouseUp]);
 
-  // Синхронизация камеры Gizmo с основной камерой
+
   useEffect(() => {
     if (!camera) return;
     syncGizmoCameraWithMain(gizmoCamera, camera);

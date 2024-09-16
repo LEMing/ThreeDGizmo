@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CUBE_CONSTANTS } from './constants';
-import { Axis, FacePosition } from './types';
+import {Axis, AxisOptions, FacePosition} from './types';
 import { CubePartFactory } from './CubePartFactory';
 import { TextureFactory } from './TextureFactory';
 
@@ -8,12 +8,40 @@ export class GizmoCube {
   private hoveredObject: THREE.Object3D | null = null;
   private originalColor: THREE.Color | null = null;
 
+  get vectorToCube() {
+    return this.hoveredObject?.userData.vectorToCube;
+  }
+
+  private createTextSprite(text: string, color: number): THREE.Sprite {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const context = canvas.getContext('2d')!;
+
+    context.fillStyle = 'rgba(0, 0, 0, 0)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.font = 'Bold 48px Arial';
+    context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.scale.set(0.5, 0.5, 0.5);
+
+    return sprite;
+  }
+
   private createTextTexture(text: string): THREE.Texture {
     return TextureFactory.createTextTexture(text);
   }
 
   private createWireframe(): THREE.LineSegments {
-    const wireframe = CubePartFactory.createWireframe();
+   const side = CUBE_CONSTANTS.CUBE_SIZE + CUBE_CONSTANTS.EDGE_SECTION_SIZE;
+    const wireframe = CubePartFactory.createWireframe([side, side, side]);
     wireframe.userData.gizmoCube = this;
     return wireframe;
   }
@@ -96,6 +124,91 @@ export class GizmoCube {
     });
   }
 
+  private createAxis(options: AxisOptions): THREE.Group {
+    const { color, direction, length, origin, lineWidth, label } = options;
+
+    const group = new THREE.Group();
+
+    // Используем lineWidth как диаметр цилиндра
+    const radius = lineWidth / 2;
+    const geometry = new THREE.CylinderGeometry(radius, radius, length, 32);
+    const material = new THREE.MeshBasicMaterial({ color });
+
+    // Создаем меш
+    const cylinder = new THREE.Mesh(geometry, material);
+
+    // Позиционируем цилиндр
+    cylinder.position.copy(origin).add(direction.clone().multiplyScalar(length / 2));
+
+    // Ориентируем цилиндр
+    if (!direction.equals(new THREE.Vector3(0, 1, 0))) {
+      const axis = new THREE.Vector3(0, 1, 0).cross(direction).normalize();
+      const angle = Math.acos(new THREE.Vector3(0, 1, 0).dot(direction));
+      cylinder.setRotationFromAxisAngle(axis, angle);
+    }
+
+    group.add(cylinder);
+
+    // Создаем и позиционируем текстовый спрайт
+    const sprite = this.createTextSprite(label, color);
+    sprite.position.copy(origin).add(direction.clone().multiplyScalar(length + 0.1)); // Немного дальше конца цилиндра
+    group.add(sprite);
+
+    return group;
+  }
+  private createCoordinateAxes(): THREE.Object3D {
+    const axesGroup = new THREE.Group();
+    const cubeSize = CUBE_CONSTANTS.CUBE_SIZE;
+    const edgeWidth = CUBE_CONSTANTS.EDGE_SECTION_SIZE;
+
+    // Вычисляем координату угла куба
+    const cornerCoordinate = -(cubeSize / 2 + edgeWidth / 2);
+
+    // Добавляем небольшое смещение
+
+    const getOrigin = (cc: number, ) => {
+      const offsetVector = new THREE.Vector3(1, 1, 1)
+      const offset = 0.04; // Можно настроить по желанию
+      return new THREE.Vector3(cc, cc, cc).add(offsetVector.clone().normalize().negate().multiplyScalar(offset));
+    }
+
+    const length = cubeSize  + 1.25 * edgeWidth
+
+    const axesData: AxisOptions[] = [
+      {
+        color: 0xff0000,
+        direction: new THREE.Vector3(1, 0, 0),
+        length,
+        origin: getOrigin(cornerCoordinate),
+        lineWidth: 0.04, // Увеличенная толщина линии
+        label: 'X'
+      },
+      {
+        color: 0x00ff00,
+        direction: new THREE.Vector3(0, 1, 0),
+        length,
+        origin: getOrigin(cornerCoordinate),
+        lineWidth: 0.04,
+        label: 'Y'
+      },
+      {
+        color: 0x0000ff,
+        direction: new THREE.Vector3(0, 0, 1),
+        length,
+        origin: getOrigin(cornerCoordinate),
+        lineWidth: 0.04,
+        label: 'Z'
+      }
+    ];
+
+    axesData.forEach(axisOptions => {
+      const axis = this.createAxis(axisOptions);
+      axesGroup.add(axis);
+    });
+
+    return axesGroup;
+  }
+
   public create(): THREE.Group {
     const group = new THREE.Group();
     group.name = 'Gizmo Group';
@@ -107,6 +220,9 @@ export class GizmoCube {
     this.createCorners(group);
     this.createFaces(group);
 
+    const axes = this.createCoordinateAxes();
+    group.add(axes);
+
     return group;
   }
 
@@ -117,8 +233,6 @@ export class GizmoCube {
     if (this.hoveredObject && this.originalColor) {
       const material = (this.hoveredObject as THREE.Mesh).material as THREE.MeshStandardMaterial;
       material.color.set(this.originalColor);
-      this.hoveredObject = null;
-      this.originalColor = null;
     }
 
     // Set new hovered object
@@ -127,16 +241,25 @@ export class GizmoCube {
       this.hoveredObject = object;
       this.originalColor = material.color.clone();
       material.color.set(0xAFC7E5);  // Highlight color
+    } else {
+      this.hoveredObject = null;
+      this.originalColor = null;
     }
   }
 
   public handleClick(): void {
     if (this.hoveredObject) {
-      console.log("Clicked object name:", this.hoveredObject.name);
-    }
-  }
+      let objectPosition = new THREE.Vector3();
+      objectPosition = this.hoveredObject.getWorldPosition(objectPosition).clone();
+      const cubeCenter = new THREE.Vector3(0, 0, 0);
+      const vectorToCube = objectPosition.sub(cubeCenter).normalize();
 
-  public getHoveredObject(): THREE.Object3D | null {
-    return this.hoveredObject;
+      // Сохраняем вектор в userData объекта
+      this.hoveredObject.userData.vectorToCube = vectorToCube;
+
+      console.log("Clicked object name:", this.hoveredObject.name);
+      console.log("Vector to cube center:", vectorToCube);
+
+    }
   }
 }
