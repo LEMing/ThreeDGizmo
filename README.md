@@ -2,6 +2,8 @@
 
 A React component for integrating a 3D Gizmo control with Three.js scenes, supporting both `OrbitControls` and `MapControls`.
 
+![ThreeDGizmo Preview](https://github.com/LEMing/ThreeDGizmo/raw/main/src/assets/cover.png)
+
 ## Table of Contents
 - [Installation](#installation)
 - [Features](#features)
