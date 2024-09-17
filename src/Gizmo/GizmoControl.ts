@@ -20,7 +20,7 @@ interface MainParams {
 
 interface SyncFunctions {
   syncGizmoCameraWithMain: (gizmoCamera: THREE.Camera, mainCamera: THREE.Camera) => void;
-  syncMainCameraWithGizmo: (mainCamera: THREE.Camera, gizmoCamera: THREE.Camera) => void;
+  syncMainCameraWithGizmo: (mainCamera: THREE.Camera, gizmoCamera: THREE.Camera, controls: OrbitControls | MapControls) => void;
 }
 
 interface GizmoControlParams {
@@ -85,7 +85,7 @@ class GizmoControl {
     this.gizmoControls.update();
 
     this.onChangeGizmoControlsListener = () => {
-      this.syncFunctions.syncMainCameraWithGizmo(this.mainCamera, this.gizmoCamera);
+      this.syncFunctions.syncMainCameraWithGizmo(this.mainCamera, this.gizmoCamera, this.mainControls);
       this.renderGizmo();
     };
     this.gizmoControls.addEventListener('change', this.onChangeGizmoControlsListener);
