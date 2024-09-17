@@ -1,12 +1,12 @@
-import React, {HTMLAttributes, useCallback, useEffect, useMemo, useRef} from 'react';
+import React, { HTMLAttributes, useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-
 import { syncGizmoCameraWithMain, syncMainCameraWithGizmo } from './CameraController';
 import getWebGLRenderer from './getWebGLRenderer';
 import GizmoControl from './GizmoControl';
 import './Gizmo.css';
+import { GizmoCube } from './GizmoCube';
 
 interface GizmoProps extends HTMLAttributes<HTMLDivElement> {
   camera: THREE.Camera | null;
@@ -14,32 +14,136 @@ interface GizmoProps extends HTMLAttributes<HTMLDivElement> {
   render: () => void;
 }
 
-const Gizmo: React.FC<GizmoProps> = ({ camera, className, controls, render }) => {
+const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) => {
   const gizmoRef = useRef<HTMLDivElement | null>(null);
   const gizmoScene = useRef(new THREE.Scene()).current;
   const gizmoRenderer = useRef(getWebGLRenderer()).current;
   const gizmoCamera = useRef(new THREE.PerspectiveCamera(50, 1, 0.1, 100)).current;
   const gizmoControlRef = useRef<GizmoControl | null>(null);
+  const [isRotating, setIsRotating] = useState(false);
+  const clickStartTime = useRef<number | null>(null);
+  const clickStartPosition = useRef<{ x: number; y: number } | null>(null);
 
-  // Force rendering of the gizmo after synchronization
+  const raycaster = useRef(new THREE.Raycaster()).current;
+  const mouse = useRef(new THREE.Vector2()).current;
+
   const renderGizmo = useCallback(() => {
     if (!gizmoRenderer) return;
     render();
     gizmoRenderer.render(gizmoScene, gizmoCamera);
   }, [render, gizmoRenderer, gizmoScene, gizmoCamera]);
 
-  // Set up the gizmo scene and renderer
+  const animateCameraToPosition = (startPosition: THREE.Vector3, targetPosition: THREE.Vector3, duration: number, onUpdate: () => void) => {
+    const startTime = performance.now();
+
+    const animate = () => {
+      const elapsedTime = performance.now() - startTime;
+      const t = Math.min(elapsedTime / duration, 1); // Normalize t within the range of 0 to 1
+
+      // Linear interpolation between start and target position
+      camera!.position.lerpVectors(startPosition, targetPosition, t);
+
+      // Update controls and render the scene
+      controls?.update();
+      onUpdate();
+
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  };
+
+  const alignCameraWithVector = useCallback((vector: THREE.Vector3) => {
+    if (!camera || !controls) return;
+
+    const distance = camera.position.length(); // Store current distance from center
+    const newPosition = vector.clone().multiplyScalar(distance);
+
+    // Start the transition animation
+    animateCameraToPosition(camera.position.clone(), newPosition, 400, renderGizmo);
+
+    // Point the camera at the center of the scene
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+    // Update the camera's up vector
+    camera.up.set(0, 1, 0);
+
+    // Update controls
+    controls.target.set(0, 0, 0);
+  }, [camera, controls, renderGizmo]);
+
+  const updateMousePosition = useCallback((event: MouseEvent) => {
+    if (!gizmoRenderer) return;
+    const rect = gizmoRenderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  }, [gizmoRenderer, mouse]);
+
+  const checkIntersection = useCallback(() => {
+    if (!gizmoCamera || !gizmoScene) return null;
+    raycaster.setFromCamera(mouse, gizmoCamera);
+    const intersects = raycaster.intersectObjects(gizmoScene.children, true);
+    const exceptions = ['Wireframe', ''];
+    return intersects.find(intersect => !exceptions.includes(intersect.object.name))?.object || null;
+  }, [gizmoCamera, gizmoScene, raycaster, mouse]);
+
+  const handleClick = useCallback((intersectedObject: THREE.Object3D | null) => {
+    const gizmoCube: GizmoCube = intersectedObject?.userData.gizmoCube;
+    if (intersectedObject && gizmoCube) {
+      gizmoCube.handleClick();
+      const vectorToCube = gizmoCube.vectorToCube;
+      if (vectorToCube) {
+        alignCameraWithVector(vectorToCube);
+      }
+    }
+  }, [alignCameraWithVector]);
+
+  const onMouseDown = useCallback((event: MouseEvent) => {
+    clickStartTime.current = Date.now();
+    clickStartPosition.current = { x: event.clientX, y: event.clientY };
+    setIsRotating(false);
+  }, []);
+
+  const onMouseMove = useCallback((event: MouseEvent) => {
+    if (!gizmoControlRef.current) return; // Check if gizmoControlRef is initialized
+    updateMousePosition(event);
+    const intersectedObject = checkIntersection();
+
+    if (intersectedObject && intersectedObject.userData.gizmoCube) {
+      intersectedObject.userData.gizmoCube.highlightObject(intersectedObject);
+    } else {
+      const anyObject = gizmoScene.children[0];
+      if (anyObject && anyObject.userData.gizmoCube) {
+        anyObject.userData.gizmoCube.highlightObject(null);
+      }
+    }
+
+    renderGizmo();
+  }, [updateMousePosition, checkIntersection, gizmoScene, renderGizmo]);
+
+  const onMouseUp = useCallback((event: MouseEvent) => {
+    const clickDuration = clickStartTime.current ? Date.now() - clickStartTime.current : 0;
+    if (!isRotating && clickDuration < 200) {
+      updateMousePosition(event);
+      const intersectedObject = checkIntersection();
+      handleClick(intersectedObject);
+    }
+    clickStartTime.current = null;
+    clickStartPosition.current = null;
+    setIsRotating(false);
+  }, [isRotating, updateMousePosition, checkIntersection, handleClick]);
+
   useEffect(() => {
     const gizmoDiv = gizmoRef.current;
     if (!gizmoDiv || !camera || !controls || !gizmoRenderer) return;
 
-
-    // If there's an existing GizmoControl instance, dispose of it
+    // Initialize GizmoControl
     if (gizmoControlRef.current) {
       gizmoControlRef.current.dispose();
     }
 
-    // Prepare the parameters for GizmoControl
     const gizmoParams = {
       gizmoDiv,
       gizmoScene,
@@ -58,36 +162,37 @@ const Gizmo: React.FC<GizmoProps> = ({ camera, className, controls, render }) =>
       syncMainCameraWithGizmo,
     };
 
-    // Instantiate the GizmoControl class
     gizmoControlRef.current = new GizmoControl({
       gizmoParams,
       mainParams,
       syncFunctions,
     });
 
-    // Cleanup function when the component unmounts or dependencies change
+    // Add event listeners to the DOM element
+    gizmoDiv.addEventListener('mousedown', onMouseDown);
+    gizmoDiv.addEventListener('mousemove', onMouseMove);
+    gizmoDiv.addEventListener('mouseup', onMouseUp);
+
     return () => {
       if (gizmoControlRef.current) {
         gizmoControlRef.current.dispose();
         gizmoControlRef.current = null;
       }
+      gizmoDiv.removeEventListener('mousedown', onMouseDown);
+      gizmoDiv.removeEventListener('mousemove', onMouseMove);
+      gizmoDiv.removeEventListener('mouseup', onMouseUp);
     };
-  }, [camera, controls, renderGizmo]);
+  }, [camera, controls, renderGizmo, onMouseMove, onMouseDown, onMouseUp]);
 
-  // Synchronize the gizmo camera with the main camera and force rendering
   useEffect(() => {
     if (!camera) return;
     syncGizmoCameraWithMain(gizmoCamera, camera);
     renderGizmo();
   }, [camera, renderGizmo]);
 
-  const styling = useMemo(() => {
-    return 'gizmo-default' + (className ? ` ${className}` : '');
-  }, [className])
-
   return (
     <div
-      className={styling}
+      className={className ? `${className}` : 'gizmo-default'}
       ref={gizmoRef}
     />
   );

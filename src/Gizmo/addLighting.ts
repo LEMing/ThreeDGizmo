@@ -1,81 +1,26 @@
 import * as THREE from 'three';
 
-export const addLighting = (scene: THREE.Scene, options = defaultLightningOptions) => {
-  // Ambient Light
-  const ambientLight = new THREE.AmbientLight(
-    options.ambientLight.color,
-    options.ambientLight.intensity
-  );
+export const addLighting = (scene: THREE.Scene) => {
+  // Add ambient light for general illumination
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1); // intensity set to 1
   scene.add(ambientLight);
 
-  // Hemisphere Light
-  const hemisphereLight = new THREE.HemisphereLight(
-    options.hemisphereLight.skyColor,
-    options.hemisphereLight.groundColor,
-    options.hemisphereLight.intensity
-  );
-  scene.add(hemisphereLight);
+  // Add directional lights from different angles to create uneven lighting
+  const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight1.position.set(5, 10, 5); // light from above
+  scene.add(directionalLight1);
 
-  // Directional Light
-  const directionalLight = new THREE.DirectionalLight(
-    options.directionalLight.color,
-    options.directionalLight.intensity
-  );
-  directionalLight.position.copy(options.directionalLight.position);
+  const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight2.position.set(-5, -10, 5); // light from below and side
+  scene.add(directionalLight2);
 
-  // Shadow settings
-  directionalLight.castShadow = options.directionalLight.castShadow;
+  // Add a point light to illuminate the cube like a bulb
+  const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+  pointLight.position.set(0, 0, 5); // light in front of the cube
+  scene.add(pointLight);
 
-  if (directionalLight.castShadow) {
-    directionalLight.shadow.mapSize.width = options.directionalLight.shadow.mapSize.width;
-    directionalLight.shadow.mapSize.height = options.directionalLight.shadow.mapSize.height;
-
-    directionalLight.shadow.camera.near = options.directionalLight.shadow.camera.near;
-    directionalLight.shadow.camera.far = options.directionalLight.shadow.camera.far;
-    directionalLight.shadow.camera.left = options.directionalLight.shadow.camera.left;
-    directionalLight.shadow.camera.right = options.directionalLight.shadow.camera.right;
-    directionalLight.shadow.camera.top = options.directionalLight.shadow.camera.top;
-    directionalLight.shadow.camera.bottom = options.directionalLight.shadow.camera.bottom;
-
-    directionalLight.shadow.bias = options.directionalLight.shadow.bias;
-    directionalLight.shadow.radius = options.directionalLight.shadow.radius;
-  }
-
-  scene.add(directionalLight);
+  // Shadows are disabled
+  directionalLight1.castShadow = false;
+  directionalLight2.castShadow = false;
+  pointLight.castShadow = false;
 };
-
-export const defaultLightningOptions = {
-  ambientLight: {
-    color: '#404040',
-    intensity: Math.PI,
-  },
-  hemisphereLight: {
-    skyColor: '#ffffbb',
-    groundColor: '#080820',
-    intensity: 1,
-  },
-  directionalLight: {
-    color: '#ffffff',
-    intensity: Math.PI,
-    position: new THREE.Vector3(6, 6, 6),
-    castShadow: true,
-    shadow: {
-      mapSize: {
-        width: 512,
-        height: 512,
-      },
-      camera: {
-        near: 0.5,
-        far: 50,
-        left: -10,
-        right: 10,
-        top: 10,
-        bottom: -10,
-      },
-      bias: -0.001,
-      radius: 1,
-    },
-  },
-};
-
-export default defaultLightningOptions;

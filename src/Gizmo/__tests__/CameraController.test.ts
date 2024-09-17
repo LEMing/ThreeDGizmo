@@ -1,68 +1,63 @@
-// syncCameras.test.ts
-
 import * as THREE from 'three';
-import { syncGizmoCameraWithMain, syncMainCameraWithGizmo } from '../CameraController'; // Adjust the import path accordingly
+// @ts-ignore
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+import {mockRenderer} from '../../__mocks__/mockRenderer';
+import { syncGizmoCameraWithMain, syncMainCameraWithGizmo } from '../CameraController';
 
-describe('Camera Synchronization Functions', () => {
+describe('Camera Synchronization', () => {
   let mainCamera: THREE.PerspectiveCamera;
   let gizmoCamera: THREE.PerspectiveCamera;
+  let controls: OrbitControls;
+  let renderer: THREE.WebGLRenderer;
 
   beforeEach(() => {
-    // Initialize the main camera
+    // @ts-ignore
+    renderer = mockRenderer;
     mainCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-    mainCamera.position.set(10, 20, 30);
-    mainCamera.lookAt(0, 0, 0);
-    mainCamera.updateMatrixWorld(true);
-
-    // Initialize the gizmo camera
     gizmoCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-    gizmoCamera.position.set(-10, -20, -30);
-    gizmoCamera.lookAt(0, 0, 0);
-    gizmoCamera.updateMatrixWorld(true);
+    controls = new OrbitControls(mainCamera, renderer.domElement);
   });
 
-  test('syncGizmoCameraWithMain should synchronize gizmoCamera with mainCamera', () => {
+  test('syncGizmoCameraWithMain updates gizmo camera position and rotation', () => {
+    mainCamera.position.set(10, 10, 10);
+    mainCamera.lookAt(0, 0, 0);
+
     syncGizmoCameraWithMain(gizmoCamera, mainCamera);
 
-    // The gizmoCamera should have its position adjusted correctly
-    const mainDirection = new THREE.Vector3(0, 0, -1)
-    .applyQuaternion(mainCamera.quaternion)
-    .normalize();
-
-    const expectedPosition = mainDirection.clone().multiplyScalar(-5);
-    expect(gizmoCamera.position.distanceTo(expectedPosition)).toBeLessThan(1e-6);
-
-    // The gizmoCamera should be looking at the origin
-    const gizmoDirection = new THREE.Vector3();
-    gizmoCamera.getWorldDirection(gizmoDirection);
-
-    const expectedDirection = new THREE.Vector3()
-    .subVectors(new THREE.Vector3(0, 0, 0), gizmoCamera.position)
-    .normalize();
-
-    expect(gizmoDirection.distanceTo(expectedDirection)).toBeLessThan(1e-6);
+    expect(gizmoCamera.position.length()).toBeCloseTo(5);
+    const gizmoQuaternion = gizmoCamera.quaternion.toArray();
+    const mainQuaternion = mainCamera.quaternion.toArray();
+    gizmoQuaternion.forEach((value, index) => {
+      expect(value).toBeCloseTo(mainQuaternion[index], 5);
+    });
   });
 
-  test('syncMainCameraWithGizmo should synchronize mainCamera with gizmoCamera', () => {
-    syncMainCameraWithGizmo(mainCamera, gizmoCamera);
+  test('syncMainCameraWithGizmo updates main camera position and rotation', () => {
+    gizmoCamera.position.set(0, 0, 5);
+    gizmoCamera.lookAt(0, 0, 0);
+    mainCamera.position.set(20, 20, 20);
 
-    // The mainCamera should have its position adjusted correctly
-    const moveDistance = mainCamera.position.length();
-    const gizmoDirection = new THREE.Vector3(0, 0, -1)
-    .applyQuaternion(gizmoCamera.quaternion)
-    .normalize();
+    syncMainCameraWithGizmo(mainCamera, gizmoCamera, controls);
 
-    const expectedPosition = gizmoDirection.clone().multiplyScalar(-moveDistance);
-    expect(mainCamera.position.distanceTo(expectedPosition)).toBeLessThan(1e-6);
+    expect(mainCamera.position.length()).toBeCloseTo(34.64);
+    const mainQuaternion = mainCamera.quaternion.toArray();
+    const gizmoQuaternion = gizmoCamera.quaternion.toArray();
+    mainQuaternion.forEach((value, index) => {
+      expect(Math.abs(value)).toBeCloseTo(Math.abs(gizmoQuaternion[index]), 5);
+    });
+  });
 
-    // The mainCamera should be looking at the origin
-    const mainDirection = new THREE.Vector3();
-    mainCamera.getWorldDirection(mainDirection);
+  test('syncMainCameraWithGizmo respects controls target', () => {
+    gizmoCamera.position.set(0, 0, 5);
+    gizmoCamera.lookAt(0, 0, 0);
+    mainCamera.position.set(20, 20, 20);
+    controls.target.set(10, 0, 0);
 
-    const expectedDirection = new THREE.Vector3()
-    .subVectors(new THREE.Vector3(0, 0, 0), mainCamera.position)
-    .normalize();
+    syncMainCameraWithGizmo(mainCamera, gizmoCamera, controls);
 
-    expect(mainDirection.distanceTo(expectedDirection)).toBeLessThan(1e-6);
+    const expectedDirection = new THREE.Vector3(10, 0, 0).sub(mainCamera.position).normalize();
+    const actualDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(mainCamera.quaternion).normalize();
+
+    expect(actualDirection.dot(expectedDirection)).toBeCloseTo(1, 5);
   });
 });
