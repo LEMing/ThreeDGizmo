@@ -17,7 +17,7 @@ interface GizmoProps extends HTMLAttributes<HTMLDivElement> {
 const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) => {
   const gizmoRef = useRef<HTMLDivElement | null>(null);
   const gizmoScene = useRef(new THREE.Scene()).current;
-  const gizmoRenderer = useRef(getWebGLRenderer()).current;
+  const [gizmoRenderer] = useState(() => getWebGLRenderer());
   const gizmoCamera = useRef(new THREE.PerspectiveCamera(50, 1, 0.1, 100)).current;
   const gizmoControlRef = useRef<GizmoControl | null>(null);
   const [isRotating, setIsRotating] = useState(false);

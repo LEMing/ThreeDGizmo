@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.2.1
+---
+* Switch from useRef to useState to avoid recreating the renderer when component re-renders
+
 0.2.0
 ---
 * Added Fusion 360 like active areas
