@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 export const CUBE_CONSTANTS = {
   CUBE_SIZE: 1.8,
   EDGE_SECTION_SIZE: 0.35,
@@ -13,3 +15,7 @@ export const CUBE_CONSTANTS = {
   CORNER_COLOR: '#EFF3F2',
   LINE_COLOR: 0x000000,
 };
+
+export const defaultGizmoOptions = {
+  up: new THREE.Vector3(0, 1, 0),
+}

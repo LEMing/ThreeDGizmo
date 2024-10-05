@@ -16,3 +16,7 @@ export interface AxisOptions {
   lineWidth: number;
   label: string;
 }
+
+export type GizmoOptions = {
+  up: THREE.Vector3;
+}

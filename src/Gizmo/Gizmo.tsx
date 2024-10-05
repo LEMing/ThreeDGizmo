@@ -7,18 +7,29 @@ import getWebGLRenderer from './getWebGLRenderer';
 import GizmoControl from './GizmoControl';
 import './Gizmo.css';
 import { GizmoCube } from './GizmoCube';
+import {GizmoOptions} from './types';
 
 interface GizmoProps extends HTMLAttributes<HTMLDivElement> {
   camera: THREE.Camera | null;
   controls: OrbitControls | MapControls | null;
   render: () => void;
+  options: GizmoOptions;
 }
 
-const Gizmo: React.FC<GizmoProps> = ({ camera, controls, className, render }) => {
+const Gizmo: React.FC<GizmoProps> = (
+  {
+    camera,
+    controls,
+    className,
+    render,
+    options,
+  }) => {
   const gizmoRef = useRef<HTMLDivElement | null>(null);
   const gizmoScene = useRef(new THREE.Scene()).current;
   const [gizmoRenderer] = useState(() => getWebGLRenderer());
   const gizmoCamera = useRef(new THREE.PerspectiveCamera(50, 1, 0.1, 100)).current;
+  gizmoCamera.up.copy(options.up);
+
   const gizmoControlRef = useRef<GizmoControl | null>(null);
   const [isRotating, setIsRotating] = useState(false);
   const clickStartTime = useRef<number | null>(null);

@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.3.0
+---
+* Add options to pass external Up vector
+
 0.2.1
 ---
 * Switch from useRef to useState to avoid recreating the renderer when component re-renders

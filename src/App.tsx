@@ -8,7 +8,13 @@ function App() {
   const controls = new OrbitControls(camera, document.createElement('div'));
   return (
     <>
-      <Gizmo render={() => console.log('render')} camera={camera} controls={controls} className="custom-gizmo-style"/>
+      <Gizmo
+        render={() => console.log('render')}
+        camera={camera}
+        controls={controls}
+        className="custom-gizmo-style"
+        options={{up: new THREE.Vector3(0, 1, 0)}}
+      />
     </>
   )
 }
