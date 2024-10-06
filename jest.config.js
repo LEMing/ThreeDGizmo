@@ -3,6 +3,7 @@ export default {
   testEnvironment: 'jsdom',
   moduleNameMapper: {
     '^three/examples/jsm/controls/OrbitControls$': '<rootDir>/src/__mocks__/OrbitControlsMock.ts',
+    '^three/examples/jsm/controls/MapControls': '<rootDir>/src/__mocks__/MapControlsMock.ts',
     '^three/examples/jsm/loaders/GLTFLoader$': '<rootDir>/src/__mocks__/GLTFLoaderMock.ts',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy'  // Add this line to mock CSS files
   },

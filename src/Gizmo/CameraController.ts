@@ -13,9 +13,7 @@ interface CameraSyncParams {
 export const syncGizmoCameraWithMain = (
   gizmoCamera: THREE.Camera,
   mainCamera: THREE.Camera,
-  controls?: OrbitControls | MapControls
 ) => {
-  const isMapControl = controls instanceof MapControls;
 
   // For both controls, we can synchronize the gizmo camera's quaternion with the main camera's quaternion
   gizmoCamera.quaternion.copy(mainCamera.quaternion);

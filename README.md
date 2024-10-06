@@ -1,6 +1,9 @@
 # ThreeDGizmo
 
 A React component for integrating a 3D Gizmo control with Three.js scenes, supporting both `OrbitControls` and `MapControls`.
+It's a "clone" of "Fusion 360" gizmo control in the sense of using the same approach with active corners, edges and faces for better navigation.
+This control will align the camera with the appropriate "direction" vector by click at the active area.
+The "direction" vector is a vector from the center of the cube to the center of the active area.
 
 ![ThreeDGizmo Preview](https://github.com/LEMing/ThreeDGizmo/raw/main/src/assets/cover.png)
 
