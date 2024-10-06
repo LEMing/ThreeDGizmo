@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.4.2
+---
+* Update cover
+
 0.4.1
 ---
 * Add link to the repository in the README
