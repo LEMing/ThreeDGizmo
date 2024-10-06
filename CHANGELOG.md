@@ -1,6 +1,10 @@
 Changelog
 =========
 
+In Master
+---
+* Add throttle to mouse move event
+
 0.3.0
 ---
 * Add options to pass external Up vector

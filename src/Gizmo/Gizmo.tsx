@@ -7,6 +7,7 @@ import getWebGLRenderer from './getWebGLRenderer';
 import GizmoControl from './GizmoControl';
 import './Gizmo.css';
 import { GizmoCube } from './GizmoCube';
+import {throttle} from './throttle';
 import {GizmoOptions} from './types';
 
 interface GizmoProps extends HTMLAttributes<HTMLDivElement> {
@@ -117,7 +118,7 @@ const Gizmo: React.FC<GizmoProps> = (
     setIsRotating(false);
   }, []);
 
-  const onMouseMove = useCallback((event: MouseEvent) => {
+  const onMouseMove = useCallback(throttle((event: MouseEvent) => {
     if (!gizmoControlRef.current) return; // Check if gizmoControlRef is initialized
     updateMousePosition(event);
     const intersectedObject = checkIntersection();
@@ -132,7 +133,7 @@ const Gizmo: React.FC<GizmoProps> = (
     }
 
     renderGizmo();
-  }, [updateMousePosition, checkIntersection, gizmoScene, renderGizmo]);
+  }, 100), [updateMousePosition, checkIntersection, gizmoScene, renderGizmo]);
 
   const onMouseUp = useCallback((event: MouseEvent) => {
     const clickDuration = clickStartTime.current ? Date.now() - clickStartTime.current : 0;
