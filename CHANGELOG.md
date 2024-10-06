@@ -1,8 +1,10 @@
 Changelog
 =========
 
-In Master
+0.4.0
 ---
+* Fix navigation issues with MapControls
+* Add examples
 * Add throttle to mouse move event
 
 0.3.0

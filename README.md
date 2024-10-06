@@ -6,6 +6,8 @@ This control will align the camera with the appropriate "direction" vector by cl
 The "direction" vector is a vector from the center of the cube to the center of the active area.
 
 ![ThreeDGizmo Preview](https://github.com/LEMing/ThreeDGizmo/raw/main/src/assets/cover.png)
+![Map Controls Preview](https://github.com/LEMing/ThreeDGizmo/raw/main/src/assets/map-controls.png)
+![Orbit Controls Preview](https://github.com/LEMing/ThreeDGizmo/raw/main/src/assets/orbit-controls.png)
 
 ## Table of Contents
 - [Installation](#installation)
