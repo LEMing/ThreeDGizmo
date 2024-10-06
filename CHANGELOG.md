@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.4.1
+---
+* Add link to the repository in the README
+
 0.4.0
 ---
 * Fix navigation issues with MapControls
