@@ -28,8 +28,12 @@ const Gizmo: React.FC<GizmoProps> = (
   const gizmoRef = useRef<HTMLDivElement | null>(null);
   const gizmoScene = useRef(new THREE.Scene()).current;
   const [gizmoRenderer] = useState(() => getWebGLRenderer());
-  const gizmoCamera = useRef(new THREE.PerspectiveCamera(50, 1, 0.1, 100)).current;
-  gizmoCamera.up.copy(options.up);
+  const CAMERA_FOV = 50; // Field of View
+  const CAMERA_ASPECT = 1; // Aspect Ratio
+  const CAMERA_NEAR_CLIP = 0.1; // Near Clipping Plane
+  const CAMERA_FAR_CLIP = 100; // Far Clipping Plane
+
+  const gizmoCamera = useRef(new THREE.PerspectiveCamera(CAMERA_FOV, CAMERA_ASPECT, CAMERA_NEAR_CLIP, CAMERA_FAR_CLIP)).current;  gizmoCamera.up.copy(options.up);
 
   const gizmoControlRef = useRef<GizmoControl | null>(null);
   const [isRotating, setIsRotating] = useState(false);
@@ -74,7 +78,8 @@ const Gizmo: React.FC<GizmoProps> = (
     const newPosition = vector.clone().multiplyScalar(distance);
 
     // Start the transition animation
-    animateCameraToPosition(camera.position.clone(), newPosition, 400, renderGizmo);
+    const CAMERA_ANIMATION_DURATION = 400; // in milliseconds
+    animateCameraToPosition(camera.position.clone(), newPosition, CAMERA_ANIMATION_DURATION, renderGizmo);
 
     // Point the camera at the center of the scene
     camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -117,7 +122,7 @@ const Gizmo: React.FC<GizmoProps> = (
     clickStartPosition.current = { x: event.clientX, y: event.clientY };
     setIsRotating(false);
   }, []);
-
+  const MOUSE_MOVE_THROTTLE_FPS = 25;
   const onMouseMove = useCallback(throttle((event: MouseEvent) => {
     if (!gizmoControlRef.current) return; // Check if gizmoControlRef is initialized
     updateMousePosition(event);
@@ -133,7 +138,7 @@ const Gizmo: React.FC<GizmoProps> = (
     }
 
     renderGizmo();
-  }, 100), [updateMousePosition, checkIntersection, gizmoScene, renderGizmo]);
+  }, 1000 / MOUSE_MOVE_THROTTLE_FPS), [updateMousePosition, checkIntersection, gizmoScene, renderGizmo]);
 
   const onMouseUp = useCallback((event: MouseEvent) => {
     const clickDuration = clickStartTime.current ? Date.now() - clickStartTime.current : 0;

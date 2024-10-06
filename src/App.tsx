@@ -1,22 +1,37 @@
-import * as THREE from 'three';
+import React, { useState } from 'react';
+import SceneManager from './SceneManager';
 import './App.css';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
-import Gizmo from './Gizmo/Gizmo';
 
-function App() {
-  const camera = new THREE.Camera();
-  const controls = new OrbitControls(camera, document.createElement('div'));
+// Define the available examples
+const examples = {
+  GIZMO_ONLY: 'Gizmo Only',
+  CAD_LIKE: 'CAD Like',
+  MAP_FREE_FLY: 'Map Free Fly',
+};
+
+const App: React.FC = () => {
+  const [selectedExample, setSelectedExample] = useState<string>(examples.GIZMO_ONLY);
+
   return (
-    <>
-      <Gizmo
-        render={() => console.log('render')}
-        camera={camera}
-        controls={controls}
-        className="custom-gizmo-style"
-        options={{up: new THREE.Vector3(0, 1, 0)}}
-      />
-    </>
-  )
-}
+    <div className="content">
 
-export default App
+      <h1>...::THREEDGIZMO::...</h1>
+      <select
+        className="example-select"
+        value={selectedExample}
+        onChange={(e) => setSelectedExample(e.target.value)}
+      >
+        <option value={examples.GIZMO_ONLY}>Gizmo Only</option>
+        <option value={examples.CAD_LIKE}>CAD Like</option>
+        <option value={examples.MAP_FREE_FLY}>Map Free Fly</option>
+      </select>
+
+
+      <div className="example-container">
+        <SceneManager selectedExample={selectedExample} />
+      </div>
+    </div>
+  );
+};
+
+export default App;
