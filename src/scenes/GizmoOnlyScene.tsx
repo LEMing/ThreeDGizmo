@@ -48,7 +48,7 @@ const GizmoOnlyScene: React.FC = () => {
     <div ref={divRef} className="gizmo-scene" style={{ width: '640px', height: '360px' }}>
       {camera && controls && (
         <Gizmo
-          render={() => console.log('render')}
+          render={() => console.log('Gizmo only rendering external scene')}
           camera={camera}
           controls={controls}
           className="custom-gizmo-style"

@@ -122,6 +122,7 @@ const Gizmo: React.FC<GizmoProps> = (
     clickStartPosition.current = { x: event.clientX, y: event.clientY };
     setIsRotating(false);
   }, []);
+
   const MOUSE_MOVE_THROTTLE_FPS = 25;
   const onMouseMove = useCallback(throttle((event: MouseEvent) => {
     if (!gizmoControlRef.current) return; // Check if gizmoControlRef is initialized
@@ -137,7 +138,6 @@ const Gizmo: React.FC<GizmoProps> = (
       }
     }
 
-    renderGizmo();
   }, 1000 / MOUSE_MOVE_THROTTLE_FPS), [updateMousePosition, checkIntersection, gizmoScene, renderGizmo]);
 
   const onMouseUp = useCallback((event: MouseEvent) => {

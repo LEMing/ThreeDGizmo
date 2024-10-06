@@ -90,7 +90,7 @@ const MapFreeFlyScene: React.FC = () => {
     <div ref={divRef} className="map-scene" style={{ width: '640px', height: '360px' }}>
       {camera && controls && (
         <Gizmo
-          render={() => console.log('render')}
+          render={() => console.log('Call external rendering function')}
           camera={camera}
           controls={controls}
           className="map-gizmo-style"

@@ -60,7 +60,7 @@ const CADLikeScene: React.FC = () => {
     <div ref={divRef} className="cad-scene" style={{ width: '640px', height: '480px' }}>
       {camera && controls && (
         <Gizmo
-          render={() => console.log('render')}
+          render={() => console.log('Render external scene CAD-like')}
           camera={camera}
           controls={controls}
           className="cad-gizmo-style"
