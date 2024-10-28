@@ -16,7 +16,9 @@ export default {
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
-  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  setupFilesAfterEnv: [
+    '<rootDir>/.jest/setupTests.ts',
+  ],
   collectCoverage: true,
   collectCoverageFrom: ['./src/**/*.{js,jsx,ts,tsx}'],
   coverageReporters: ['cobertura', 'json-summary', 'lcov'],

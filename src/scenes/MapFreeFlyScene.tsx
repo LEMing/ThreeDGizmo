@@ -101,6 +101,7 @@ const MapFreeFlyScene: React.FC = () => {
         100000000000                 // far
       );
       (newCamera as THREE.OrthographicCamera).zoom = 1.5; // Increase zoom if necessary
+      // @ts-ignore
       newCamera.updateProjectionMatrix();
     } else {
       // Create Perspective Camera
