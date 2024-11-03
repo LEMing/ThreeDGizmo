@@ -2,13 +2,13 @@ import React, {HTMLAttributes, useCallback, useEffect, useRef, useState} from 'r
 import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import {animateCameraToPosition} from './cameraAnimation';
-import { syncGizmoCameraWithMain, syncMainCameraWithGizmo } from './CameraController';
-import getWebGLRenderer from './getWebGLRenderer';
-import GizmoControl from './GizmoControl';
-import './Gizmo.css';
-import { GizmoOptions } from './types';
-import { useGizmoMouseEvents } from './GizmoMouseEvents';
+import {animateCameraToPosition} from '../utils/animateCameraToPosition';
+import { syncGizmoCameraWithMain, syncMainCameraWithGizmo } from '../core/CameraController';
+import getWebGLRenderer from '../utils/getWebGLRenderer';
+import GizmoControl from '../core/GizmoControl';
+import '../Gizmo.css';
+import { GizmoOptions } from '../types';
+import { useGizmoMouseEvents } from '../hooks/useGizmoMouseEvents';
 
 interface GizmoProps extends HTMLAttributes<HTMLDivElement> {
   camera: THREE.Camera | null;

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GizmoCube } from './GizmoCube';
+import { GizmoCube } from '../core/GizmoCube';
 
 export function updateMousePosition(event: MouseEvent, renderer: THREE.WebGLRenderer, mouse: THREE.Vector2) {
   if (!renderer) return;

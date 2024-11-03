@@ -6,7 +6,7 @@ type Controls = OrbitControls | MapControls | null;
 
 export const animateCameraToPosition = (
   camera: THREE.Camera,
-  controls: OrbitControls | MapControls | null,
+  controls: Controls,
   startPosition: THREE.Vector3,
   targetPosition: THREE.Vector3,
   duration: number,

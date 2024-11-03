@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { updateMousePosition, checkIntersection, handleClick } from '../GizmoMouseUtils';
-import { GizmoCube } from '../GizmoCube';
+import { updateMousePosition, checkIntersection, handleClick } from '../mouseUtils';
+import { GizmoCube } from '../../core/GizmoCube';
 
 describe('GizmoMouseUtils', () => {
   describe('updateMousePosition', () => {

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CubePartFactory } from '../CubePartFactory';
-import { CUBE_CONSTANTS } from '../constants';
-import { Axis } from '../types';
+import { CUBE_CONSTANTS } from '../../utils/constants';
+import { Axis } from '../../types';
 
 describe('CubePartFactory', () => {
   beforeEach(() => {

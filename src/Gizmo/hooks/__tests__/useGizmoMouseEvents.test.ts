@@ -1,8 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
 import React from 'react';
-import { useGizmoMouseEvents } from '../GizmoMouseEvents';
+import { useGizmoMouseEvents } from '../useGizmoMouseEvents';
 import * as THREE from 'three';
-import { updateMousePosition, checkIntersection, handleClick } from '../GizmoMouseUtils';
+import { updateMousePosition, checkIntersection, handleClick } from '../../utils/mouseUtils';
 
 jest.mock('three', () => {
   const actualThree = jest.requireActual('three');
@@ -22,7 +22,7 @@ jest.mock('three', () => {
   };
 });
 
-jest.mock('../GizmoMouseUtils', () => ({
+jest.mock('../../utils/mouseUtils', () => ({
   updateMousePosition: jest.fn(),
   checkIntersection: jest.fn(),
   handleClick: jest.fn(),
@@ -196,7 +196,7 @@ describe('useGizmoMouseEvents', () => {
 
   it('should set isRotating to true when hasMouseMoved returns true', () => {
     // Mock hasMouseMoved to return true
-    jest.spyOn(require('../hasMouseMoved'), 'hasMouseMoved').mockReturnValue(true);
+    jest.spyOn(require('../../utils/hasMouseMoved'), 'hasMouseMoved').mockReturnValue(true);
 
     const setIsRotating = jest.fn();
 

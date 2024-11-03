@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { animateCameraToPosition } from '../cameraAnimation';
+import { animateCameraToPosition } from '../animateCameraToPosition';
 
 // Mocking the controls update method
 const mockControls = {

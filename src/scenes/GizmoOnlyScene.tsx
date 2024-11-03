@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import Gizmo from '../Gizmo/Gizmo';
+import Gizmo from '../Gizmo/components/Gizmo';
 
 const GizmoOnlyScene: React.FC = () => {
   const divRef = useRef<HTMLDivElement | null>(null);

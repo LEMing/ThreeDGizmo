@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { CUBE_CONSTANTS } from './constants';
-import { Axis, AxisOptions, FacePosition } from './types';
-import { CubePartFactory } from './CubePartFactory';
-import { TextureFactory } from './TextureFactory';
+import { CUBE_CONSTANTS } from '../utils/constants';
+import { Axis, AxisOptions, FacePosition } from '../types';
+import { CubePartFactory } from '../factories/CubePartFactory';
+import { TextureFactory } from '../factories/TextureFactory';
 
 export class GizmoCube {
   private hoveredObject: THREE.Object3D | null = null;

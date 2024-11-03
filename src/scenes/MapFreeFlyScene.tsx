@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import { addLighting } from '../Gizmo/addLighting';
-import Gizmo from '../Gizmo/Gizmo';
+import { addLighting } from '../Gizmo/utils/addLighting';
+import Gizmo from '../Gizmo/components/Gizmo';
 
 const MapFreeFlyScene: React.FC = () => {
   const divRef = useRef<HTMLDivElement | null>(null);

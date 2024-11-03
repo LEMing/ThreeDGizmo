@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { CUBE_CONSTANTS } from './constants';
-import { Axis } from './types';
+import { CUBE_CONSTANTS } from '../utils/constants';
+import { Axis } from '../types';
 import { TextureFactory } from './TextureFactory';
 
 export class CubePartFactory {

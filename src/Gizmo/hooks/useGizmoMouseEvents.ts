@@ -1,9 +1,9 @@
 import React, { useCallback, useRef, useState } from 'react';
 import * as THREE from 'three';
-import {hasMouseMoved} from './hasMouseMoved';
-import { throttle } from './throttle';
-import { updateMousePosition, checkIntersection, handleClick } from './GizmoMouseUtils';
-import GizmoControl from './GizmoControl';
+import {hasMouseMoved} from '../utils/hasMouseMoved';
+import { throttle } from '../utils/throttle';
+import { updateMousePosition, checkIntersection, handleClick } from '../utils/mouseUtils';
+import GizmoControl from '../core/GizmoControl';
 
 interface MouseEventsProps {
   gizmoRenderer: THREE.WebGLRenderer | null;

@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import { addLighting } from './addLighting';
+import { addLighting } from '../utils/addLighting';
 import { GizmoCube } from './GizmoCube';
 
 interface GizmoParams {

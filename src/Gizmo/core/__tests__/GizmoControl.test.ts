@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // @ts-ignore
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import {mockRenderer} from '../../__mocks__/mockRenderer';
+import {mockRenderer} from '../../../__mocks__/mockRenderer';
 import GizmoControl from '../GizmoControl';
 
 jest.mock('../GizmoCube');

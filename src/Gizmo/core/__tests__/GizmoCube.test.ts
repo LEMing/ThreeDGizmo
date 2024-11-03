@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { GizmoCube } from '../GizmoCube';
-import { CubePartFactory } from '../CubePartFactory';
+import { CubePartFactory } from '../../factories/CubePartFactory';
 
 // Mock the factory and constants
-jest.mock('../CubePartFactory');
-jest.mock('../TextureFactory');
-jest.mock('../constants', () => ({
+jest.mock('../../factories/CubePartFactory');
+jest.mock('../../factories/TextureFactory');
+jest.mock('../../utils/constants', () => ({
   CUBE_CONSTANTS: {
     CUBE_SIZE: 1,
     EDGE_SECTION_SIZE: 0.1,
