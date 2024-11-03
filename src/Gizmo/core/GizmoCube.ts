@@ -3,6 +3,7 @@ import { CUBE_CONSTANTS } from '../utils/constants';
 import { Axis, AxisOptions, FacePosition } from '../types';
 import { CubePartFactory } from '../factories/CubePartFactory';
 import { TextureFactory } from '../factories/TextureFactory';
+import createTextSprite from '../utils/createTextSprite';
 
 export class GizmoCube {
   private hoveredObject: THREE.Object3D | null = null;
@@ -10,33 +11,6 @@ export class GizmoCube {
 
   get vectorToCube() {
     return this.hoveredObject?.userData.vectorToCube;
-  }
-
-  private createTextSprite(text: string, color: number): THREE.Sprite {
-    const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
-    const context = canvas.getContext('2d')!;
-
-    context.fillStyle = 'rgba(0, 0, 0, 0)';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    context.font = 'Bold 48px Arial';
-    context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.fillText(text, canvas.width / 2, canvas.height / 2);
-
-    const texture = new THREE.CanvasTexture(canvas);
-    const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-    const sprite = new THREE.Sprite(spriteMaterial);
-    sprite.scale.set(0.5, 0.5, 0.5);
-
-    return sprite;
-  }
-
-  private createTextTexture(text: string): THREE.Texture {
-    return TextureFactory.createTextTexture(text);
   }
 
   private createWireframe(): THREE.LineSegments {
@@ -150,7 +124,7 @@ export class GizmoCube {
     group.add(cylinder);
 
     // Create and position text sprite
-    const sprite = this.createTextSprite(label, color);
+    const sprite = createTextSprite(label, color);
     sprite.position.copy(origin).add(direction.clone().multiplyScalar(length + 0.1)); // Slightly further from the end of the cylinder
     group.add(sprite);
 

@@ -12,6 +12,10 @@ jest.mock('../../utils/constants', () => ({
   },
 }));
 
+jest.mock('../../utils/createTextSprite', () => {
+  return jest.fn().mockReturnValue(new THREE.Sprite());
+})
+
 describe('GizmoCube', () => {
   let gizmoCube: GizmoCube;
 
@@ -34,15 +38,6 @@ describe('GizmoCube', () => {
       return group;
     });
 
-    // Mock createTextSprite
-    jest.spyOn(GizmoCube.prototype as any, 'createTextSprite').mockImplementation(() => {
-      return new THREE.Sprite(new THREE.SpriteMaterial());
-    });
-
-    // Mock createTextTexture
-    jest.spyOn(GizmoCube.prototype as any, 'createTextTexture').mockImplementation(() => {
-      return new THREE.Texture();
-    });
   });
 
   test('create method returns a THREE.Group', () => {

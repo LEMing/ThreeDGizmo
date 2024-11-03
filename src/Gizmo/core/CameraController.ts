@@ -2,14 +2,6 @@ import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-interface CameraSyncParams {
-  sourceCamera: THREE.Camera;
-  targetCamera: THREE.Camera;
-  distance?: number;
-  controls?: OrbitControls | MapControls;
-  isMapControl?: boolean;
-}
-
 export const syncGizmoCameraWithMain = (
   gizmoCamera: THREE.Camera,
   mainCamera: THREE.Camera,
@@ -35,7 +27,6 @@ export const syncMainCameraWithGizmo = (
   gizmoCamera: THREE.Camera,
   controls: OrbitControls | MapControls
 ) => {
-  const isMapControl = controls instanceof MapControls;
 
   // Get the current target from the controls
   const target = controls.target.clone();
