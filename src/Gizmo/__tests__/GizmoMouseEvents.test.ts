@@ -1,11 +1,9 @@
-// useGizmoMouseEvents.test.ts
 import { renderHook, act } from '@testing-library/react';
 import React from 'react';
 import { useGizmoMouseEvents } from '../GizmoMouseEvents';
 import * as THREE from 'three';
 import { updateMousePosition, checkIntersection, handleClick } from '../GizmoMouseUtils';
 
-// Mock the three.js components and utilities
 jest.mock('three', () => {
   const actualThree = jest.requireActual('three');
   return {
@@ -23,7 +21,6 @@ jest.mock('three', () => {
     })),
   };
 });
-
 
 jest.mock('../GizmoMouseUtils', () => ({
   updateMousePosition: jest.fn(),
@@ -142,4 +139,170 @@ describe('useGizmoMouseEvents', () => {
 
     expect(handleClick).not.toHaveBeenCalled();
   });
+
+  it('should return early if gizmoControlRef.current is null', () => {
+    const gizmoControlRef = { current: null };
+
+    const { result } = renderHook(() =>
+      useGizmoMouseEvents({
+        gizmoRenderer,
+        gizmoScene,
+        gizmoCamera,
+        alignCameraWithVector,
+        gizmoControlRef,
+      })
+    );
+
+    const mouseMoveEvent = new MouseEvent('mousemove', {
+      clientX: 150,
+      clientY: 150,
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(50);
+      result.current.onMouseMove(mouseMoveEvent);
+    });
+
+    expect(updateMousePosition).not.toHaveBeenCalled();
+    expect(checkIntersection).not.toHaveBeenCalled();
+  });
+
+  it('should return early if gizmoRenderer is null', () => {
+    const gizmoRenderer = null;
+
+    const { result } = renderHook(() =>
+      useGizmoMouseEvents({
+        gizmoRenderer,
+        gizmoScene,
+        gizmoCamera,
+        alignCameraWithVector,
+        gizmoControlRef,
+      })
+    );
+
+    const mouseMoveEvent = new MouseEvent('mousemove', {
+      clientX: 150,
+      clientY: 150,
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(50);
+      result.current.onMouseMove(mouseMoveEvent);
+    });
+
+    expect(updateMousePosition).not.toHaveBeenCalled();
+    expect(checkIntersection).not.toHaveBeenCalled();
+  });
+
+  it('should set isRotating to true when hasMouseMoved returns true', () => {
+    // Mock hasMouseMoved to return true
+    jest.spyOn(require('../hasMouseMoved'), 'hasMouseMoved').mockReturnValue(true);
+
+    const setIsRotating = jest.fn();
+
+    jest.spyOn(React, 'useState').mockImplementationOnce(() => [false, setIsRotating]);
+
+    const { result } = renderHook(() =>
+      useGizmoMouseEvents({
+        gizmoRenderer,
+        gizmoScene,
+        gizmoCamera,
+        alignCameraWithVector,
+        gizmoControlRef,
+      })
+    );
+
+    // Simulate mouse down to set clickStartPosition
+    const mouseDownEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 100 });
+    act(() => {
+      result.current.onMouseDown(mouseDownEvent);
+    });
+
+    const mouseMoveEvent = new MouseEvent('mousemove', {
+      clientX: 150,
+      clientY: 150,
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(50);
+      result.current.onMouseMove(mouseMoveEvent);
+    });
+
+    expect(setIsRotating).toHaveBeenCalledWith(true);
+  });
+
+  it('should call highlightObject on intersectedObject when it has userData.gizmoCube', () => {
+    const mockGizmoCube = {
+      highlightObject: jest.fn(),
+    };
+
+    const intersectedObject = {
+      userData: {
+        gizmoCube: mockGizmoCube,
+      },
+    };
+
+    (checkIntersection as jest.Mock).mockReturnValue(intersectedObject);
+
+    const { result } = renderHook(() =>
+      useGizmoMouseEvents({
+        gizmoRenderer,
+        gizmoScene,
+        gizmoCamera,
+        alignCameraWithVector,
+        gizmoControlRef,
+      })
+    );
+
+    const mouseMoveEvent = new MouseEvent('mousemove', {
+      clientX: 150,
+      clientY: 150,
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(50);
+      result.current.onMouseMove(mouseMoveEvent);
+    });
+
+    expect(mockGizmoCube.highlightObject).toHaveBeenCalledWith(intersectedObject);
+  });
+
+  it('should call highlightObject(null) on anyObject when intersectedObject is null and anyObject has userData.gizmoCube', () => {
+    const mockGizmoCube = {
+      highlightObject: jest.fn(),
+    };
+
+    // Create a mock Object3D instance
+    const anyObject = new THREE.Object3D();
+    anyObject.userData = {
+      gizmoCube: mockGizmoCube,
+    };
+
+    gizmoScene.children[0] = anyObject;
+
+    (checkIntersection as jest.Mock).mockReturnValue(null);
+
+    const { result } = renderHook(() =>
+      useGizmoMouseEvents({
+        gizmoRenderer,
+        gizmoScene,
+        gizmoCamera,
+        alignCameraWithVector,
+        gizmoControlRef,
+      })
+    );
+
+    const mouseMoveEvent = new MouseEvent('mousemove', {
+      clientX: 150,
+      clientY: 150,
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(50);
+      result.current.onMouseMove(mouseMoveEvent);
+    });
+
+    expect(mockGizmoCube.highlightObject).toHaveBeenCalledWith(null);
+  });
+
 });
