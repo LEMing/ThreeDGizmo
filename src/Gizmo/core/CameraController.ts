@@ -11,7 +11,7 @@ export const syncGizmoCameraWithMain = (
   gizmoCamera.quaternion.copy(mainCamera.quaternion);
 
   // Position the gizmo camera at a fixed distance along the main camera's forward direction
-  const gizmoDistance = 5; // You can adjust this distance as needed
+  const gizmoDistance = 8; // You can adjust this distance as needed
   const gizmoDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(gizmoCamera.quaternion).normalize();
   gizmoCamera.position.copy(gizmoDirection.multiplyScalar(-gizmoDistance));
 

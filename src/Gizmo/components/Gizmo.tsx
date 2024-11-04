@@ -27,12 +27,13 @@ const Gizmo: React.FC<GizmoProps> = ({
   const gizmoRef = useRef<HTMLDivElement | null>(null);
   const gizmoScene = useRef(new THREE.Scene()).current;
   const [gizmoRenderer] = useState(() => getWebGLRenderer());
-  const CAMERA_FOV = 50;
+  const CAMERA_FOV = 30;
   const CAMERA_ASPECT = 1;
   const CAMERA_NEAR_CLIP = 0.1;
-  const CAMERA_FAR_CLIP = 100;
+  const CAMERA_FAR_CLIP = 10;
+  const gizmoDefaultCamera = new THREE.PerspectiveCamera(CAMERA_FOV, CAMERA_ASPECT, CAMERA_NEAR_CLIP, CAMERA_FAR_CLIP);
 
-  const gizmoCamera = useRef(new THREE.PerspectiveCamera(CAMERA_FOV, CAMERA_ASPECT, CAMERA_NEAR_CLIP, CAMERA_FAR_CLIP)).current;
+  const gizmoCamera = useRef(gizmoDefaultCamera).current;
   gizmoCamera.up.copy(options.up);
 
   const gizmoControlRef = useRef<GizmoControl | null>(null);

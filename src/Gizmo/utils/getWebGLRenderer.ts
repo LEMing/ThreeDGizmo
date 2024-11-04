@@ -12,7 +12,7 @@ const isWebGLAvailable = () => {
 
 const getWebGLRenderer = () => {
   if (isWebGLAvailable()) {
-    return new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    return new THREE.WebGLRenderer({ alpha: true, antialias: false });
   } else {
     console.error('WebGL is not supported in this environment.');
     return null;

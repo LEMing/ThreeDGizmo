@@ -1,6 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
 import * as THREE from 'three';
-import {hasMouseMoved} from '../utils/hasMouseMoved';
 import { throttle } from '../utils/throttle';
 import { updateMousePosition, checkIntersection, handleClick } from '../utils/mouseUtils';
 import GizmoControl from '../core/GizmoControl';
@@ -23,7 +22,6 @@ export function useGizmoMouseEvents({
     alignCameraWithVector,
     gizmoControlRef,
   }: MouseEventsProps) {
-  const [isRotating, setIsRotating] = useState(false);
   const clickStartTime = useRef<number | null>(null);
   const clickStartPosition = useRef<{ x: number; y: number } | null>(null);
   const raycaster = useRef(new THREE.Raycaster()).current;
@@ -33,10 +31,6 @@ export function useGizmoMouseEvents({
   const handleMouseMove = useCallback(
     throttle((event: MouseEvent) => {
       if (!gizmoControlRef.current || !gizmoRenderer) return;
-
-      if (hasMouseMoved(clickStartPosition.current, event)) {
-        setIsRotating(true);
-      }
 
       updateMousePosition(event, gizmoRenderer, mouse);
       const intersectedObject = checkIntersection(mouse, gizmoCamera, gizmoScene, raycaster);
@@ -55,8 +49,6 @@ export function useGizmoMouseEvents({
       gizmoScene,
       raycaster,
       mouse,
-      setIsRotating,
-      hasMouseMoved,
     ]
   );
 
@@ -64,7 +56,6 @@ export function useGizmoMouseEvents({
   const handleMouseDown = useCallback((event: MouseEvent) => {
     clickStartTime.current = Date.now();
     clickStartPosition.current = { x: event.clientX, y: event.clientY };
-    setIsRotating(false);
   }, []);
 
   // Mouse up event
@@ -72,7 +63,7 @@ export function useGizmoMouseEvents({
     (event: MouseEvent) => {
       const clickDuration = clickStartTime.current ? Date.now() - clickStartTime.current : 0;
 
-      if (!isRotating && clickDuration < CLICK_DURATION_THRESHOLD) {
+      if (clickDuration < CLICK_DURATION_THRESHOLD) {
         updateMousePosition(event, gizmoRenderer!, mouse);
         const intersectedObject = checkIntersection(mouse, gizmoCamera, gizmoScene, raycaster);
         handleClick(intersectedObject, alignCameraWithVector);
@@ -80,10 +71,8 @@ export function useGizmoMouseEvents({
 
       clickStartTime.current = null;
       clickStartPosition.current = null;
-      setIsRotating(false);
     },
     [
-      isRotating,
       alignCameraWithVector,
       gizmoRenderer,
       gizmoCamera,

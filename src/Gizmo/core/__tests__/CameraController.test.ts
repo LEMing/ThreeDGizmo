@@ -24,7 +24,7 @@ describe('Camera Synchronization', () => {
 
     syncGizmoCameraWithMain(gizmoCamera, mainCamera);
 
-    expect(gizmoCamera.position.length()).toBeCloseTo(5);
+    expect(gizmoCamera.position.length()).toBeCloseTo(8);
     const gizmoQuaternion = gizmoCamera.quaternion.toArray();
     const mainQuaternion = mainCamera.quaternion.toArray();
     gizmoQuaternion.forEach((value, index) => {

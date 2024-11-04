@@ -117,29 +117,6 @@ describe('useGizmoMouseEvents', () => {
     expect(handleClick).toHaveBeenCalled();
   });
 
-  it('should not call handleClick if rotating', () => {
-    // Set isRotating to true
-    jest.spyOn(React, 'useState').mockImplementationOnce(() => [true, jest.fn()]);
-
-    const { result } = renderHook(() =>
-      useGizmoMouseEvents({
-        gizmoRenderer,
-        gizmoScene,
-        gizmoCamera,
-        alignCameraWithVector,
-        gizmoControlRef,
-      })
-    );
-
-    const mouseUpEvent = new MouseEvent('mouseup', { clientX: 200, clientY: 200 });
-
-    act(() => {
-      result.current.onMouseUp(mouseUpEvent);
-    });
-
-    expect(handleClick).not.toHaveBeenCalled();
-  });
-
   it('should return early if gizmoControlRef.current is null', () => {
     const gizmoControlRef = { current: null };
 
@@ -192,43 +169,6 @@ describe('useGizmoMouseEvents', () => {
 
     expect(updateMousePosition).not.toHaveBeenCalled();
     expect(checkIntersection).not.toHaveBeenCalled();
-  });
-
-  it('should set isRotating to true when hasMouseMoved returns true', () => {
-    // Mock hasMouseMoved to return true
-    jest.spyOn(require('../../utils/hasMouseMoved'), 'hasMouseMoved').mockReturnValue(true);
-
-    const setIsRotating = jest.fn();
-
-    jest.spyOn(React, 'useState').mockImplementationOnce(() => [false, setIsRotating]);
-
-    const { result } = renderHook(() =>
-      useGizmoMouseEvents({
-        gizmoRenderer,
-        gizmoScene,
-        gizmoCamera,
-        alignCameraWithVector,
-        gizmoControlRef,
-      })
-    );
-
-    // Simulate mouse down to set clickStartPosition
-    const mouseDownEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 100 });
-    act(() => {
-      result.current.onMouseDown(mouseDownEvent);
-    });
-
-    const mouseMoveEvent = new MouseEvent('mousemove', {
-      clientX: 150,
-      clientY: 150,
-    });
-
-    act(() => {
-      jest.advanceTimersByTime(50);
-      result.current.onMouseMove(mouseMoveEvent);
-    });
-
-    expect(setIsRotating).toHaveBeenCalledWith(true);
   });
 
   it('should call highlightObject on intersectedObject when it has userData.gizmoCube', () => {
