@@ -38,19 +38,16 @@ export function useGizmoMouseEvents({
       if (intersectedObject?.userData.gizmoCube) {
         intersectedObject.userData.gizmoCube.highlightObject(intersectedObject);
       } else {
-        const anyObject = gizmoScene.children[0];
-        anyObject?.userData.gizmoCube?.highlightObject(null);
+        gizmoScene.traverse((child) => {
+          if (child.userData.gizmoCube) {
+            child.userData.gizmoCube.highlightObject(null);
+          }
+        });
       }
     }, 1000 / MOUSE_MOVE_THROTTLE_FPS),
-    [
-      gizmoControlRef,
-      gizmoRenderer,
-      gizmoCamera,
-      gizmoScene,
-      raycaster,
-      mouse,
-    ]
+    [gizmoControlRef, gizmoRenderer, gizmoCamera, gizmoScene, raycaster, mouse]
   );
+
 
   // Mouse down event
   const handleMouseDown = useCallback((event: MouseEvent) => {

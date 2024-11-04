@@ -11,9 +11,6 @@ jest.mock('three', () => {
     WebGLRenderer: jest.fn().mockImplementation(() => ({
       getSize: jest.fn().mockReturnValue({ width: 800, height: 600 }),
     })),
-    Scene: jest.fn().mockImplementation(() => ({
-      children: [],
-    })),
     Camera: jest.fn().mockImplementation(() => ({})),
     Raycaster: jest.fn().mockImplementation(() => ({
       setFromCamera: jest.fn(),
