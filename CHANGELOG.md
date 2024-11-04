@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.5.0
+---
+* Remove highlight on leave
+* Disable antialiasing by default
+
 0.4.2
 ---
 * Update cover
