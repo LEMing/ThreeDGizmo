@@ -1,15 +1,42 @@
 import * as THREE from 'three';
-import { CUBE_CONSTANTS } from '../utils/constants';
+import { CUBE_CONSTANTS, InitialFace } from '../constants';
 import { Axis, AxisOptions, FacePosition } from '../types';
 import { CubePartFactory } from '../factories/CubePartFactory';
 import createTextSprite from '../utils/createTextSprite';
 
+interface GizmoCubeConfig {
+  initialFace?: InitialFace;
+}
+
 export class GizmoCube {
   private hoveredObject: THREE.Object3D | null = null;
   private originalColor: THREE.Color | null = null;
+  private config: GizmoCubeConfig;
+
+  constructor(config: GizmoCubeConfig = { initialFace: InitialFace.TOP  }) {
+    this.config = { initialFace: InitialFace.TOP  };
+  }
 
   get vectorToCube() {
     return this.hoveredObject?.userData.vectorToCube;
+  }
+
+  private getInitialRotation(): THREE.Euler {
+    switch (this.config.initialFace) {
+      case InitialFace.BACK:
+        return new THREE.Euler(0, Math.PI, 0);
+      case InitialFace.RIGHT:
+        return new THREE.Euler(0, -Math.PI / 2, 0);
+      case InitialFace.LEFT:
+        return new THREE.Euler(0, Math.PI / 2, 0);
+      case InitialFace.TOP:
+        return new THREE.Euler(Math.PI / 2, 0, 0);
+      case InitialFace.BOTTOM:
+        return new THREE.Euler(-Math.PI / 2, 0, 0);
+      case InitialFace.FRONT:
+      default:
+        return new THREE.Euler(0, 0, 0);
+    }
   }
 
   private createWireframe(): THREE.LineSegments {
@@ -194,6 +221,10 @@ export class GizmoCube {
 
     const axes = this.createCoordinateAxes();
     group.add(axes);
+
+    // Apply initial rotation to the entire group
+    const initialRotation = this.getInitialRotation();
+    group.setRotationFromEuler(initialRotation);
 
     return group;
   }

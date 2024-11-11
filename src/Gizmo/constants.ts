@@ -19,3 +19,12 @@ export const CUBE_CONSTANTS = {
 export const defaultGizmoOptions = {
   up: new THREE.Vector3(0, 1, 0),
 }
+
+export enum InitialFace {
+  FRONT = 'FRONT',
+  BACK = 'BACK',
+  RIGHT = 'RIGHT',
+  LEFT = 'LEFT',
+  TOP = 'TOP',
+  BOTTOM = 'BOTTOM'
+}

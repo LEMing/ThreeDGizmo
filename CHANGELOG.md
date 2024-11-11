@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.6.0
+---
+* Allow user to select intial cube face
+
 0.5.0
 ---
 * Remove highlight on leave

@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { addLighting } from '../utils/addLighting';
 import { GizmoCube } from './GizmoCube';
+import { GizmoOptions } from '../types';
 
 interface GizmoParams {
   gizmoDiv: HTMLDivElement;
@@ -27,6 +28,7 @@ interface GizmoControlParams {
   gizmoParams: GizmoParams;
   mainParams: MainParams;
   syncFunctions: SyncFunctions;
+  options?: GizmoOptions;
 }
 
 class GizmoControl {
@@ -42,9 +44,10 @@ class GizmoControl {
   private onChangeGizmoControlsListener: () => void = () => {};
   private animationId: number = 0;
   private syncFunctions: SyncFunctions;
+  private options?: GizmoOptions;
 
   constructor(params: GizmoControlParams) {
-    const { gizmoParams, mainParams, syncFunctions } = params;
+    const { gizmoParams, mainParams, syncFunctions, options } = params;
 
     this.gizmoDiv = gizmoParams.gizmoDiv;
     this.gizmoScene = gizmoParams.gizmoScene;
@@ -54,6 +57,7 @@ class GizmoControl {
     this.mainControls = mainParams.mainControls;
     this.renderGizmo = mainParams.renderGizmo;
     this.syncFunctions = syncFunctions;
+    this.options = options
     this.gizmoControls = new OrbitControls(this.gizmoCamera, this.gizmoRenderer.domElement);
 
     this.initializeRenderer();
@@ -69,7 +73,7 @@ class GizmoControl {
   }
 
   private initializeScene() {
-    const gizmoCube = new GizmoCube().create();
+    const gizmoCube = new GizmoCube({initialFace: this.options?.initialFace}).create();
     if (gizmoCube) {
       this.gizmoScene.add(gizmoCube);
     }

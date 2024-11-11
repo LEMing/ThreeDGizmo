@@ -6,15 +6,15 @@ import {animateCameraToPosition} from '../utils/animateCameraToPosition';
 import { syncGizmoCameraWithMain, syncMainCameraWithGizmo } from '../core/CameraController';
 import getWebGLRenderer from '../utils/getWebGLRenderer';
 import GizmoControl from '../core/GizmoControl';
-import '../Gizmo.css';
 import { GizmoOptions } from '../types';
 import { useGizmoMouseEvents } from '../hooks/useGizmoMouseEvents';
+import '../Gizmo.css';
 
 interface GizmoProps extends HTMLAttributes<HTMLDivElement> {
   camera: THREE.Camera | null;
   controls: OrbitControls | MapControls | null;
   render: () => void;
-  options: GizmoOptions;
+  options?: GizmoOptions;
 }
 
 const Gizmo: React.FC<GizmoProps> = ({
@@ -34,7 +34,6 @@ const Gizmo: React.FC<GizmoProps> = ({
   const gizmoDefaultCamera = new THREE.PerspectiveCamera(CAMERA_FOV, CAMERA_ASPECT, CAMERA_NEAR_CLIP, CAMERA_FAR_CLIP);
 
   const gizmoCamera = useRef(gizmoDefaultCamera).current;
-  gizmoCamera.up.copy(options.up);
 
   const gizmoControlRef = useRef<GizmoControl | null>(null);
 
@@ -103,6 +102,7 @@ const Gizmo: React.FC<GizmoProps> = ({
       gizmoParams,
       mainParams,
       syncFunctions,
+      options
     });
 
     gizmoDiv.addEventListener('mousedown', onMouseDown);

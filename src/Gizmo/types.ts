@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { InitialFace } from './constants';
 
 export type Axis = 'x' | 'y' | 'z';
 
@@ -18,5 +19,6 @@ export interface AxisOptions {
 }
 
 export type GizmoOptions = {
-  up: THREE.Vector3;
+  initialFace?: InitialFace
+  up?: THREE.Vector3;
 }

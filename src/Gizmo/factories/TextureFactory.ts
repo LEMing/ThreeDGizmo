@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CUBE_CONSTANTS } from '../utils/constants';
+import { CUBE_CONSTANTS } from '../constants';
 
 export class TextureFactory {
   static createTextTexture(text: string): THREE.Texture {
