@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { GizmoCube } from '../GizmoCube';
 import { CubePartFactory } from '../../factories/CubePartFactory';
+import { InitialCubeFace } from '../../constants';
 
 // Mock the factory and constants
 jest.mock('../../factories/CubePartFactory');
 jest.mock('../../factories/TextureFactory');
-jest.mock('../../utils/constants', () => ({
+jest.mock('../../constants', () => ({
+  ...jest.requireActual('../../constants'),
   CUBE_CONSTANTS: {
     CUBE_SIZE: 1,
     EDGE_SECTION_SIZE: 0.1,
@@ -20,7 +22,7 @@ describe('GizmoCube', () => {
   let gizmoCube: GizmoCube;
 
   beforeEach(() => {
-    gizmoCube = new GizmoCube();
+    gizmoCube = new GizmoCube({initialFace: InitialCubeFace.TOP});
     jest.clearAllMocks();
 
     // Mock factory methods
@@ -116,5 +118,16 @@ describe('GizmoCube', () => {
     gizmoCube.highlightObject(mockMesh);
 
     expect(gizmoCube.vectorToCube).toBe(mockVector);
+  });
+
+  test('should set correct rotation for BOTTOM face', () => {
+    const gizmoCube = new GizmoCube({initialFace: InitialCubeFace.BOTTOM});
+    const group = gizmoCube.create();
+
+    // Check if rotation matches expected values
+    const expectedRotation = new THREE.Euler(-Math.PI / 2, 0, 0)
+    expect(group.rotation.x).toBeCloseTo(expectedRotation.x);
+    expect(group.rotation.y).toBeCloseTo(expectedRotation.y);
+    expect(group.rotation.z).toBeCloseTo(expectedRotation.z);
   });
 });

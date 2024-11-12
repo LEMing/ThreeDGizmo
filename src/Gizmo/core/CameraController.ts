@@ -1,18 +1,19 @@
-import * as THREE from 'three';
-import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import * as THREE from "three";
+import { MapControls } from "three/examples/jsm/controls/MapControls";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 export const syncGizmoCameraWithMain = (
   gizmoCamera: THREE.Camera,
   mainCamera: THREE.Camera,
 ) => {
-
   // For both controls, we can synchronize the gizmo camera's quaternion with the main camera's quaternion
   gizmoCamera.quaternion.copy(mainCamera.quaternion);
 
   // Position the gizmo camera at a fixed distance along the main camera's forward direction
   const gizmoDistance = 8; // You can adjust this distance as needed
-  const gizmoDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(gizmoCamera.quaternion).normalize();
+  const gizmoDirection = new THREE.Vector3(0, 0, -1)
+    .applyQuaternion(gizmoCamera.quaternion)
+    .normalize();
   gizmoCamera.position.copy(gizmoDirection.multiplyScalar(-gizmoDistance));
 
   // Ensure the gizmo camera looks at the origin
@@ -21,13 +22,11 @@ export const syncGizmoCameraWithMain = (
   gizmoCamera.updateMatrixWorld(true);
 };
 
-
 export const syncMainCameraWithGizmo = (
   mainCamera: THREE.Camera,
   gizmoCamera: THREE.Camera,
-  controls: OrbitControls | MapControls
+  controls: OrbitControls | MapControls,
 ) => {
-
   // Get the current target from the controls
   const target = controls.target.clone();
 
@@ -36,7 +35,9 @@ export const syncMainCameraWithGizmo = (
   const distance = offset.length();
 
   // Create a unit vector pointing along the gizmo camera's forward direction
-  const gizmoDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(gizmoCamera.quaternion).normalize();
+  const gizmoDirection = new THREE.Vector3(0, 0, -1)
+    .applyQuaternion(gizmoCamera.quaternion)
+    .normalize();
 
   // Scale the direction vector by the distance to maintain the same distance from the target
   const newOffset = gizmoDirection.multiplyScalar(-distance);

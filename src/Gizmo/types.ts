@@ -1,7 +1,7 @@
-import * as THREE from 'three';
-import { InitialFace } from './constants';
+import * as THREE from "three";
+import { InitialCubeFace } from "./constants";
 
-export type Axis = 'x' | 'y' | 'z';
+export type Axis = "x" | "y" | "z";
 
 export type FacePosition = {
   pos: THREE.Vector3;
@@ -19,6 +19,6 @@ export interface AxisOptions {
 }
 
 export type GizmoOptions = {
-  initialFace?: InitialFace
+  initialFace?: InitialCubeFace;
   up?: THREE.Vector3;
-}
+};

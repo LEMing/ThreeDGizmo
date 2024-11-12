@@ -1,10 +1,11 @@
 // imports
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import { addLighting } from '../utils/addLighting';
-import { GizmoCube } from './GizmoCube';
-import { GizmoOptions } from '../types';
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { MapControls } from "three/examples/jsm/controls/MapControls";
+import { addLighting } from "../utils/addLighting";
+import { GizmoCube } from "./GizmoCube";
+import { GizmoOptions } from "../types";
+import { InitialCubeFace } from "../constants";
 
 interface GizmoParams {
   gizmoDiv: HTMLDivElement;
@@ -20,8 +21,15 @@ interface MainParams {
 }
 
 interface SyncFunctions {
-  syncGizmoCameraWithMain: (gizmoCamera: THREE.Camera, mainCamera: THREE.Camera) => void;
-  syncMainCameraWithGizmo: (mainCamera: THREE.Camera, gizmoCamera: THREE.Camera, controls: OrbitControls | MapControls) => void;
+  syncGizmoCameraWithMain: (
+    gizmoCamera: THREE.Camera,
+    mainCamera: THREE.Camera,
+  ) => void;
+  syncMainCameraWithGizmo: (
+    mainCamera: THREE.Camera,
+    gizmoCamera: THREE.Camera,
+    controls: OrbitControls | MapControls,
+  ) => void;
 }
 
 interface GizmoControlParams {
@@ -57,8 +65,11 @@ class GizmoControl {
     this.mainControls = mainParams.mainControls;
     this.renderGizmo = mainParams.renderGizmo;
     this.syncFunctions = syncFunctions;
-    this.options = options
-    this.gizmoControls = new OrbitControls(this.gizmoCamera, this.gizmoRenderer.domElement);
+    this.options = options;
+    this.gizmoControls = new OrbitControls(
+      this.gizmoCamera,
+      this.gizmoRenderer.domElement,
+    );
 
     this.initializeRenderer();
     this.initializeScene();
@@ -68,12 +79,17 @@ class GizmoControl {
 
   private initializeRenderer() {
     this.gizmoRenderer.setPixelRatio(window.devicePixelRatio);
-    this.gizmoRenderer.setSize(this.gizmoDiv.clientWidth, this.gizmoDiv.clientHeight);
+    this.gizmoRenderer.setSize(
+      this.gizmoDiv.clientWidth,
+      this.gizmoDiv.clientHeight,
+    );
     this.gizmoDiv.appendChild(this.gizmoRenderer.domElement);
   }
 
   private initializeScene() {
-    const gizmoCube = new GizmoCube({initialFace: this.options?.initialFace}).create();
+    const gizmoCube = new GizmoCube({
+      initialFace: this.options?.initialFace ?? InitialCubeFace.FRONT,
+    }).create();
     if (gizmoCube) {
       this.gizmoScene.add(gizmoCube);
     }
@@ -82,8 +98,14 @@ class GizmoControl {
 
   private initializeControls() {
     this.onChangeMainControlsListener = () =>
-      this.syncFunctions.syncGizmoCameraWithMain(this.gizmoCamera, this.mainCamera);
-    this.mainControls.addEventListener('change', this.onChangeMainControlsListener);
+      this.syncFunctions.syncGizmoCameraWithMain(
+        this.gizmoCamera,
+        this.mainCamera,
+      );
+    this.mainControls.addEventListener(
+      "change",
+      this.onChangeMainControlsListener,
+    );
 
     this.gizmoControls.enableZoom = false;
     this.gizmoControls.enablePan = false;
@@ -91,10 +113,17 @@ class GizmoControl {
     this.gizmoControls.update();
 
     this.onChangeGizmoControlsListener = () => {
-      this.syncFunctions.syncMainCameraWithGizmo(this.mainCamera, this.gizmoCamera, this.mainControls);
+      this.syncFunctions.syncMainCameraWithGizmo(
+        this.mainCamera,
+        this.gizmoCamera,
+        this.mainControls,
+      );
       this.renderGizmo();
     };
-    this.gizmoControls.addEventListener('change', this.onChangeGizmoControlsListener);
+    this.gizmoControls.addEventListener(
+      "change",
+      this.onChangeGizmoControlsListener,
+    );
   }
 
   private startAnimationLoop() {
@@ -110,8 +139,14 @@ class GizmoControl {
   }
 
   public dispose() {
-    this.mainControls.removeEventListener('change', this.onChangeMainControlsListener);
-    this.gizmoControls.removeEventListener('change', this.onChangeGizmoControlsListener);
+    this.mainControls.removeEventListener(
+      "change",
+      this.onChangeMainControlsListener,
+    );
+    this.gizmoControls.removeEventListener(
+      "change",
+      this.onChangeGizmoControlsListener,
+    );
     this.gizmoScene.clear();
     cancelAnimationFrame(this.animationId);
   }
