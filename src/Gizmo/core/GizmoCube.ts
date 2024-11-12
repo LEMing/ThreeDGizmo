@@ -1,15 +1,42 @@
-import * as THREE from 'three';
-import { CUBE_CONSTANTS } from '../utils/constants';
-import { Axis, AxisOptions, FacePosition } from '../types';
-import { CubePartFactory } from '../factories/CubePartFactory';
-import createTextSprite from '../utils/createTextSprite';
+import * as THREE from "three";
+import { CUBE_CONSTANTS, InitialCubeFace } from "../constants";
+import { Axis, AxisOptions, FacePosition } from "../types";
+import { CubePartFactory } from "../factories/CubePartFactory";
+import createTextSprite from "../utils/createTextSprite";
+
+interface GizmoCubeConfig {
+  initialFace: InitialCubeFace;
+}
 
 export class GizmoCube {
   private hoveredObject: THREE.Object3D | null = null;
   private originalColor: THREE.Color | null = null;
+  private config: GizmoCubeConfig;
+
+  constructor(config: GizmoCubeConfig) {
+    this.config = config;
+  }
 
   get vectorToCube() {
     return this.hoveredObject?.userData.vectorToCube;
+  }
+
+  private getInitialRotation(): THREE.Euler {
+    switch (this.config.initialFace) {
+      case InitialCubeFace.BACK:
+        return new THREE.Euler(0, Math.PI, 0);
+      case InitialCubeFace.RIGHT:
+        return new THREE.Euler(0, -Math.PI / 2, 0);
+      case InitialCubeFace.LEFT:
+        return new THREE.Euler(0, Math.PI / 2, 0);
+      case InitialCubeFace.TOP:
+        return new THREE.Euler(Math.PI / 2, 0, 0);
+      case InitialCubeFace.BOTTOM:
+        return new THREE.Euler(-Math.PI / 2, 0, 0);
+      case InitialCubeFace.FRONT:
+      default:
+        return new THREE.Euler(0, 0, 0);
+    }
   }
 
   private createWireframe(): THREE.LineSegments {
@@ -19,7 +46,11 @@ export class GizmoCube {
     return wireframe;
   }
 
-  private createEdgeBox(pos: THREE.Vector3, axis: Axis, index: number): THREE.Mesh {
+  private createEdgeBox(
+    pos: THREE.Vector3,
+    axis: Axis,
+    index: number,
+  ): THREE.Mesh {
     const edge = CubePartFactory.createEdgeBox(pos, axis, index);
     edge.userData.gizmoCube = this;
     return edge;
@@ -31,7 +62,11 @@ export class GizmoCube {
     return corner;
   }
 
-  private createFace(pos: THREE.Vector3, rotation: THREE.Euler, label: string): THREE.Group {
+  private createFace(
+    pos: THREE.Vector3,
+    rotation: THREE.Euler,
+    label: string,
+  ): THREE.Group {
     const face = CubePartFactory.createFace(pos, rotation, label);
     const mesh = face.getObjectByName(`Face Box ${label}`) as THREE.Mesh;
     mesh.userData.gizmoCube = this;
@@ -41,18 +76,18 @@ export class GizmoCube {
   private createEdges(group: THREE.Group): void {
     const halfSize = CUBE_CONSTANTS.CUBE_SIZE / 2;
     const edgePositions: { axis: Axis; pos: THREE.Vector3 }[] = [
-      { axis: 'x', pos: new THREE.Vector3(0, halfSize, -halfSize) },
-      { axis: 'x', pos: new THREE.Vector3(0, halfSize, halfSize) },
-      { axis: 'x', pos: new THREE.Vector3(0, -halfSize, -halfSize) },
-      { axis: 'x', pos: new THREE.Vector3(0, -halfSize, halfSize) },
-      { axis: 'y', pos: new THREE.Vector3(halfSize, 0, -halfSize) },
-      { axis: 'y', pos: new THREE.Vector3(halfSize, 0, halfSize) },
-      { axis: 'y', pos: new THREE.Vector3(-halfSize, 0, -halfSize) },
-      { axis: 'y', pos: new THREE.Vector3(-halfSize, 0, halfSize) },
-      { axis: 'z', pos: new THREE.Vector3(halfSize, halfSize, 0) },
-      { axis: 'z', pos: new THREE.Vector3(halfSize, -halfSize, 0) },
-      { axis: 'z', pos: new THREE.Vector3(-halfSize, halfSize, 0) },
-      { axis: 'z', pos: new THREE.Vector3(-halfSize, -halfSize, 0) },
+      { axis: "x", pos: new THREE.Vector3(0, halfSize, -halfSize) },
+      { axis: "x", pos: new THREE.Vector3(0, halfSize, halfSize) },
+      { axis: "x", pos: new THREE.Vector3(0, -halfSize, -halfSize) },
+      { axis: "x", pos: new THREE.Vector3(0, -halfSize, halfSize) },
+      { axis: "y", pos: new THREE.Vector3(halfSize, 0, -halfSize) },
+      { axis: "y", pos: new THREE.Vector3(halfSize, 0, halfSize) },
+      { axis: "y", pos: new THREE.Vector3(-halfSize, 0, -halfSize) },
+      { axis: "y", pos: new THREE.Vector3(-halfSize, 0, halfSize) },
+      { axis: "z", pos: new THREE.Vector3(halfSize, halfSize, 0) },
+      { axis: "z", pos: new THREE.Vector3(halfSize, -halfSize, 0) },
+      { axis: "z", pos: new THREE.Vector3(-halfSize, halfSize, 0) },
+      { axis: "z", pos: new THREE.Vector3(-halfSize, -halfSize, 0) },
     ];
 
     edgePositions.forEach(({ axis, pos }, index) => {
@@ -83,12 +118,36 @@ export class GizmoCube {
   private createFaces(group: THREE.Group): void {
     const halfSize = CUBE_CONSTANTS.CUBE_SIZE / 2;
     const facePositions: FacePosition[] = [
-      { pos: new THREE.Vector3(0, 0, halfSize), rotation: new THREE.Euler(0, 0, 0), label: 'FRONT' },
-      { pos: new THREE.Vector3(0, 0, -halfSize), rotation: new THREE.Euler(0, Math.PI, 0), label: 'BACK' },
-      { pos: new THREE.Vector3(halfSize, 0, 0), rotation: new THREE.Euler(0, Math.PI / 2, 0), label: 'RIGHT' },
-      { pos: new THREE.Vector3(-halfSize, 0, 0), rotation: new THREE.Euler(0, -Math.PI / 2, 0), label: 'LEFT' },
-      { pos: new THREE.Vector3(0, halfSize, 0), rotation: new THREE.Euler(-Math.PI / 2, 0, 0), label: 'TOP' },
-      { pos: new THREE.Vector3(0, -halfSize, 0), rotation: new THREE.Euler(Math.PI / 2, 0, 0), label: 'BOTTOM' },
+      {
+        pos: new THREE.Vector3(0, 0, halfSize),
+        rotation: new THREE.Euler(0, 0, 0),
+        label: "FRONT",
+      },
+      {
+        pos: new THREE.Vector3(0, 0, -halfSize),
+        rotation: new THREE.Euler(0, Math.PI, 0),
+        label: "BACK",
+      },
+      {
+        pos: new THREE.Vector3(halfSize, 0, 0),
+        rotation: new THREE.Euler(0, Math.PI / 2, 0),
+        label: "RIGHT",
+      },
+      {
+        pos: new THREE.Vector3(-halfSize, 0, 0),
+        rotation: new THREE.Euler(0, -Math.PI / 2, 0),
+        label: "LEFT",
+      },
+      {
+        pos: new THREE.Vector3(0, halfSize, 0),
+        rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
+        label: "TOP",
+      },
+      {
+        pos: new THREE.Vector3(0, -halfSize, 0),
+        rotation: new THREE.Euler(Math.PI / 2, 0, 0),
+        label: "BOTTOM",
+      },
     ];
 
     facePositions.forEach(({ pos, rotation, label }) => {
@@ -111,7 +170,9 @@ export class GizmoCube {
     const cylinder = new THREE.Mesh(geometry, material);
 
     // Position cylinder
-    cylinder.position.copy(origin).add(direction.clone().multiplyScalar(length / 2));
+    cylinder.position
+      .copy(origin)
+      .add(direction.clone().multiplyScalar(length / 2));
 
     // Orient cylinder
     if (!direction.equals(new THREE.Vector3(0, 1, 0))) {
@@ -124,7 +185,9 @@ export class GizmoCube {
 
     // Create and position text sprite
     const sprite = createTextSprite(label, color);
-    sprite.position.copy(origin).add(direction.clone().multiplyScalar(length + 0.1)); // Slightly further from the end of the cylinder
+    sprite.position
+      .copy(origin)
+      .add(direction.clone().multiplyScalar(length + 0.1)); // Slightly further from the end of the cylinder
     group.add(sprite);
 
     return group;
@@ -141,8 +204,10 @@ export class GizmoCube {
     const getOrigin = (cc: number) => {
       const offsetVector = new THREE.Vector3(1, 1, 1);
       const offset = 0.04; // Can be adjusted as desired
-      return new THREE.Vector3(cc, cc, cc).add(offsetVector.clone().normalize().negate().multiplyScalar(offset));
-    }
+      return new THREE.Vector3(cc, cc, cc).add(
+        offsetVector.clone().normalize().negate().multiplyScalar(offset),
+      );
+    };
 
     const length = cubeSize + 1.25 * edgeWidth;
 
@@ -153,7 +218,7 @@ export class GizmoCube {
         length,
         origin: getOrigin(cornerCoordinate),
         lineWidth: 0.04, // Increased line thickness
-        label: 'X'
+        label: "X",
       },
       {
         color: 0x00ff00,
@@ -161,7 +226,7 @@ export class GizmoCube {
         length,
         origin: getOrigin(cornerCoordinate),
         lineWidth: 0.04,
-        label: 'Y'
+        label: "Y",
       },
       {
         color: 0x0000ff,
@@ -169,11 +234,11 @@ export class GizmoCube {
         length,
         origin: getOrigin(cornerCoordinate),
         lineWidth: 0.04,
-        label: 'Z'
-      }
+        label: "Z",
+      },
     ];
 
-    axesData.forEach(axisOptions => {
+    axesData.forEach((axisOptions) => {
       const axis = this.createAxis(axisOptions);
       axesGroup.add(axis);
     });
@@ -183,7 +248,7 @@ export class GizmoCube {
 
   public create(): THREE.Group {
     const group = new THREE.Group();
-    group.name = 'Gizmo Group';
+    group.name = "Gizmo Group";
 
     const wireframe = this.createWireframe();
     group.add(wireframe);
@@ -195,6 +260,10 @@ export class GizmoCube {
     const axes = this.createCoordinateAxes();
     group.add(axes);
 
+    // Apply initial rotation to the entire group
+    const initialRotation = this.getInitialRotation();
+    group.setRotationFromEuler(initialRotation);
+
     return group;
   }
 
@@ -203,7 +272,8 @@ export class GizmoCube {
 
     // Reset previous hovered object
     if (this.hoveredObject && this.originalColor) {
-      const material = (this.hoveredObject as THREE.Mesh).material as THREE.MeshStandardMaterial;
+      const material = (this.hoveredObject as THREE.Mesh)
+        .material as THREE.MeshStandardMaterial;
       material.color.set(this.originalColor);
     }
 
@@ -212,7 +282,7 @@ export class GizmoCube {
       const material = object.material as THREE.MeshStandardMaterial;
       this.hoveredObject = object;
       this.originalColor = material.color.clone();
-      material.color.set(0xAFC7E5);  // Highlight color
+      material.color.set(0xafc7e5); // Highlight color
     } else {
       this.hoveredObject = null;
       this.originalColor = null;
@@ -222,7 +292,9 @@ export class GizmoCube {
   public handleClick(): void {
     if (this.hoveredObject) {
       let objectPosition = new THREE.Vector3();
-      objectPosition = this.hoveredObject.getWorldPosition(objectPosition).clone();
+      objectPosition = this.hoveredObject
+        .getWorldPosition(objectPosition)
+        .clone();
       const cubeCenter = new THREE.Vector3(0, 0, 0);
       const vectorToCube = objectPosition.sub(cubeCenter).normalize();
 
