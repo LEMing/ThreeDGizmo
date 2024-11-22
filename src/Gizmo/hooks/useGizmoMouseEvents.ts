@@ -15,6 +15,8 @@ interface MouseEventsProps {
 const MOUSE_MOVE_THROTTLE_FPS = 25;
 const CLICK_DURATION_THRESHOLD = 200; // milliseconds
 
+let isRotating = false;
+
 export function useGizmoMouseEvents({
     gizmoRenderer,
     gizmoScene,
@@ -58,16 +60,35 @@ export function useGizmoMouseEvents({
   // Mouse up event
   const handleMouseUp = useCallback(
     (event: MouseEvent) => {
-      const clickDuration = clickStartTime.current ? Date.now() - clickStartTime.current : 0;
+      // const clickDuration = clickStartTime.current ? Date.now() - clickStartTime.current : 0;
 
-      if (clickDuration < CLICK_DURATION_THRESHOLD) {
-        updateMousePosition(event, gizmoRenderer!, mouse);
-        const intersectedObject = checkIntersection(mouse, gizmoCamera, gizmoScene, raycaster);
-        handleClick(intersectedObject, alignCameraWithVector);
-      }
+      // if (clickDuration < CLICK_DURATION_THRESHOLD) {
+      //   updateMousePosition(event, gizmoRenderer!, mouse);
+      //   const intersectedObject = checkIntersection(mouse, gizmoCamera, gizmoScene, raycaster);
+      //   handleClick(intersectedObject, alignCameraWithVector);
+      // }
 
-      clickStartTime.current = null;
-      clickStartPosition.current = null;
+      // clickStartTime.current = null;
+      // clickStartPosition.current = null;
+
+      
+      if (isRotating) return;
+    
+      isRotating = true;
+      const currentRotation = gizmoScene.rotation.z;
+      const targetRotation = currentRotation + Math.PI / 2;
+      
+      const animate = () => {
+          const rotationDiff = targetRotation - gizmoScene.rotation.z;
+          if (Math.abs(rotationDiff) > 0.1) {
+              gizmoScene.rotation.z += Math.sign(rotationDiff) * 0.1;
+              requestAnimationFrame(animate);
+          } else {
+              gizmoScene.rotation.z = targetRotation;
+              isRotating = false;
+          }
+      };
+      animate();
     },
     [
       alignCameraWithVector,

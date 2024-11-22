@@ -5,7 +5,8 @@ import { MapControls } from "three/examples/jsm/controls/MapControls";
 import { addLighting } from "../utils/addLighting";
 import { GizmoCube } from "./GizmoCube";
 import { GizmoOptions } from "../types";
-import { InitialCubeFace } from "../constants";
+import { InitialCubeFace, ROTATION_ARROWS_NAME } from "../constants";
+import RotationArrows from "./GizmoRotationArrows";
 
 interface GizmoParams {
   gizmoDiv: HTMLDivElement;
@@ -90,9 +91,9 @@ class GizmoControl {
     const gizmoCube = new GizmoCube({
       initialFace: this.options?.initialFace ?? InitialCubeFace.FRONT,
     }).create();
-    if (gizmoCube) {
-      this.gizmoScene.add(gizmoCube);
-    }
+    const rotationArrows = new RotationArrows().create();
+    this.gizmoScene.add(rotationArrows);
+    this.gizmoScene.add(gizmoCube);
     addLighting(this.gizmoScene);
   }
 
@@ -113,6 +114,9 @@ class GizmoControl {
     this.gizmoControls.update();
 
     this.onChangeGizmoControlsListener = () => {
+      const object = this.gizmoScene.getObjectByName(ROTATION_ARROWS_NAME);
+      object?.rotation.copy(this.gizmoCamera.rotation);
+
       this.syncFunctions.syncMainCameraWithGizmo(
         this.mainCamera,
         this.gizmoCamera,

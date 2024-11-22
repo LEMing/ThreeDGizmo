@@ -27,7 +27,7 @@ export function handleClick(
 ) {
   const gizmoCube: GizmoCube = intersectedObject?.userData.gizmoCube;
   if (intersectedObject && gizmoCube) {
-    gizmoCube.handleClick();
+    // gizmoCube.handleClick();
     const vectorToCube = gizmoCube.vectorToCube;
     if (vectorToCube) {
       alignCameraWithVector(vectorToCube);

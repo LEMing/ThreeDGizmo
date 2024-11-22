@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.7.0
+---
+* Add extra navigation controls to the gizmo cube
+
 0.6.0
 ---
 * Allow user to select intial cube face
