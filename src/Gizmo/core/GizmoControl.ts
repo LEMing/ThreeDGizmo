@@ -48,7 +48,7 @@ class GizmoControl {
   private mainCamera: THREE.Camera;
   private mainControls: OrbitControls | MapControls;
   private renderGizmo: () => void;
-  private gizmoControls: OrbitControls;
+  readonly gizmoControls: OrbitControls;
   private onChangeMainControlsListener: () => void = () => {};
   private onChangeGizmoControlsListener: () => void = () => {};
   private animationId: number = 0;
@@ -103,6 +103,7 @@ class GizmoControl {
         this.gizmoCamera,
         this.mainCamera,
       );
+
     this.mainControls.addEventListener(
       "change",
       this.onChangeMainControlsListener,
@@ -114,6 +115,7 @@ class GizmoControl {
     this.gizmoControls.update();
 
     this.onChangeGizmoControlsListener = () => {
+      console.log('-----------testing----------')
       const object = this.gizmoScene.getObjectByName(ROTATION_ARROWS_NAME);
       object?.rotation.copy(this.gizmoCamera.rotation);
 
@@ -124,6 +126,7 @@ class GizmoControl {
       );
       this.renderGizmo();
     };
+
     this.gizmoControls.addEventListener(
       "change",
       this.onChangeGizmoControlsListener,
