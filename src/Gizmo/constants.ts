@@ -31,3 +31,4 @@ export const defaultGizmoOptions = {
   initialFace: InitialCubeFace.TOP,
 };
 
+export const ROTATION_ARROWS_NAME = 'rotation-arrows-name'
