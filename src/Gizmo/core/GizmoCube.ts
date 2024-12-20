@@ -1,5 +1,9 @@
 import * as THREE from "three";
-import { CUBE_CONSTANTS, InitialCubeFace } from "../constants";
+import {
+  CUBE_CONSTANTS,
+  GIZMO_GROUP_NAME,
+  InitialCubeFace,
+} from "../constants";
 import { Axis, AxisOptions, FacePosition } from "../types";
 import { CubePartFactory } from "../factories/CubePartFactory";
 import createTextSprite from "../utils/createTextSprite";
@@ -248,7 +252,7 @@ export class GizmoCube {
 
   public create(): THREE.Group {
     const group = new THREE.Group();
-    group.name = "Gizmo Group";
+    group.name = GIZMO_GROUP_NAME;
 
     const wireframe = this.createWireframe();
     group.add(wireframe);

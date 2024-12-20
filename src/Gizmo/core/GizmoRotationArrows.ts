@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { ROTATION_ARROWS_NAME } from "../constants";
+import { LEFT_ROTATION_ARROW_NAME, RIGHT_ROTATION_ARROW_NAME, ROTATION_ARROWS_NAME } from "../constants";
 
 // Geometric constants
 const QUARTER_CIRCLE_ANGLE = Math.PI / 2;
@@ -105,10 +105,10 @@ export default class RotationArrows {
   public create(): THREE.Group {
     const group = new THREE.Group();
     const curveFactory = new CurveFactory(this.radius);
-    const [curve1, curve2] = curveFactory.splitCurve();
+    const [leftCurve, rightCurve] = curveFactory.splitCurve();
     
-    const tubes = this.createTubes(curve1, curve2);
-    const arrowHeads = this.createArrowHeads(curve1, curve2);
+    const tubes = this.createTubes(leftCurve, rightCurve);
+    const arrowHeads = this.createArrowHeads(leftCurve, rightCurve);
     
     group.add(...tubes, ...arrowHeads);
     group.name = ROTATION_ARROWS_NAME;
@@ -116,7 +116,7 @@ export default class RotationArrows {
     return group;
   }
 
-  private createTubes(curve1: THREE.CatmullRomCurve3, curve2: THREE.CatmullRomCurve3): THREE.Mesh[] {
+  private createTubes(leftCurve: THREE.CatmullRomCurve3, rightCurve: THREE.CatmullRomCurve3): THREE.Mesh[] {
     const material = new THREE.MeshBasicMaterial({ color: this.color });
     const tubeParams = [
       DEFAULT_NUM_POINTS,
@@ -125,36 +125,42 @@ export default class RotationArrows {
       false
     ] as const;
 
-    const tube1 = new THREE.Mesh(
-      new THREE.TubeGeometry(curve1, ...tubeParams),
+    const leftTube = new THREE.Mesh(
+      new THREE.TubeGeometry(leftCurve, ...tubeParams),
       material
     );
-    const tube2 = new THREE.Mesh(
-      new THREE.TubeGeometry(curve2, ...tubeParams),
-      material
-    );
+    leftTube.name = LEFT_ROTATION_ARROW_NAME;
 
-    return [tube1, tube2];
+    const rightTube = new THREE.Mesh(
+      new THREE.TubeGeometry(rightCurve, ...tubeParams),
+      material
+    );
+    rightTube.name = RIGHT_ROTATION_ARROW_NAME;
+
+    return [leftTube, rightTube];
   }
 
   private createArrowHeads(
-    curve1: THREE.CatmullRomCurve3,
-    curve2: THREE.CatmullRomCurve3
+    leftCurve: THREE.CatmullRomCurve3,
+    rightCurve: THREE.CatmullRomCurve3
   ): THREE.Mesh[] {
     const arrowHead = new ArrowHead(this.color);
-    const arrow1 = arrowHead.createMesh();
-    const arrow2 = arrowHead.createMesh();
+    const leftArrowHead = arrowHead.createMesh();
+    const rightArrowHead = arrowHead.createMesh();
 
-    const point1 = curve1.getPoint(0);
-    const point2 = curve2.getPoint(1);
-    const tangent1 = curve1.getTangent(0);
+    const point1 = leftCurve.getPoint(0);
+    const point2 = rightCurve.getPoint(1);
+    const tangent1 = leftCurve.getTangent(0);
 
-    arrow1.position.copy(point1);
-    arrow2.position.copy(point2);
+    leftArrowHead.position.copy(point1);
+    rightArrowHead.position.copy(point2);
 
-    arrow1.rotation.z = Math.atan2(tangent1.y, tangent1.x) + HALF_PI;
-    arrow2.rotation.z = FULL_PI;
+    leftArrowHead.rotation.z = Math.atan2(tangent1.y, tangent1.x) + HALF_PI;
+    rightArrowHead.rotation.z = FULL_PI;
 
-    return [arrow1, arrow2];
+    leftArrowHead.name = LEFT_ROTATION_ARROW_NAME;
+    rightArrowHead.name = RIGHT_ROTATION_ARROW_NAME;
+
+    return [leftArrowHead, rightArrowHead];
   }
 }

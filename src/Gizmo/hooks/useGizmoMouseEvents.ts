@@ -7,6 +7,12 @@ import {
   handleClick,
 } from "../utils/mouseUtils";
 import GizmoControl from "../core/GizmoControl";
+import {
+  GIZMO_GROUP_NAME,
+  LEFT_ROTATION_ARROW_NAME,
+  RIGHT_ROTATION_ARROW_NAME,
+  ROTATION_ARROWS_NAME,
+} from "../constants";
 
 interface MouseEventsProps {
   gizmoRenderer: THREE.WebGLRenderer | null;
@@ -18,9 +24,6 @@ interface MouseEventsProps {
 
 const MOUSE_MOVE_THROTTLE_FPS = 25;
 const CLICK_DURATION_THRESHOLD = 200;
-const ROTATION_STEPS = 15;
-
-let isRotating = false;
 
 export function useGizmoMouseEvents({
   gizmoRenderer,
@@ -83,38 +86,50 @@ export function useGizmoMouseEvents({
       clickStartTime.current = null;
       clickStartPosition.current = null;
     },
-    [alignCameraWithVector],
+    [
+      alignCameraWithVector,
+      gizmoRenderer,
+      gizmoCamera,
+      gizmoScene,
+      raycaster,
+      mouse,
+    ],
   );
 
   const handleRotationArrowClick = useCallback(() => {
+    const centerPoint = new THREE.Vector3(0, 0, 0);
     const currentPos = gizmoCamera.position.clone();
-    const centerPoint = new THREE.Vector3(0, 0, 0); // Or your target point
 
-    // Calculate radius (distance from center)
-    const radius = currentPos.distanceTo(centerPoint);
+    const directionVector = currentPos.sub(centerPoint);
 
-    // Calculate current angle in XZ plane
-    const currentAngle = Math.atan2(currentPos.x, currentPos.z);
+    const newX = -directionVector.z;
+    const newZ = directionVector.x;
 
-    // Calculate new position (90 degrees rotation)
-    const newAngle = currentAngle + Math.PI / 2;
-    const newX = Math.sin(newAngle) * radius;
-    const newZ = Math.cos(newAngle) * radius;
-
-    // Update camera position, maintaining Y position
-    gizmoCamera.position.set(newX, currentPos.y, newZ);
-
-    // Keep camera looking at center
+    gizmoCamera.position.set(newX, directionVector.y, newZ);
     gizmoCamera.lookAt(centerPoint);
 
-    // Update controls
     gizmoControlRef.current?.gizmoControls.update();
   }, [gizmoCamera, gizmoControlRef]);
 
   const handleMouseUp = useCallback(
     (event: MouseEvent) => {
-      // handleCubeClick(event);
-      handleRotationArrowClick();
+      const intersectedObject = checkIntersection(
+        mouse,
+        gizmoCamera,
+        gizmoScene,
+        raycaster,
+      );
+      if (!intersectedObject) return;
+
+      if (
+        [RIGHT_ROTATION_ARROW_NAME, LEFT_ROTATION_ARROW_NAME].includes(
+          intersectedObject.name,
+        )
+      ) {
+        handleRotationArrowClick();
+      } else {
+        handleCubeClick(event);
+      }
     },
     [handleRotationArrowClick, handleCubeClick],
   );

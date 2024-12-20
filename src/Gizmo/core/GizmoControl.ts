@@ -25,6 +25,7 @@ interface SyncFunctions {
   syncGizmoCameraWithMain: (
     gizmoCamera: THREE.Camera,
     mainCamera: THREE.Camera,
+    gizmoScene: THREE.Scene,
   ) => void;
   syncMainCameraWithGizmo: (
     mainCamera: THREE.Camera,
@@ -102,6 +103,7 @@ class GizmoControl {
       this.syncFunctions.syncGizmoCameraWithMain(
         this.gizmoCamera,
         this.mainCamera,
+        this.gizmoScene
       );
 
     this.mainControls.addEventListener(
@@ -115,7 +117,6 @@ class GizmoControl {
     this.gizmoControls.update();
 
     this.onChangeGizmoControlsListener = () => {
-      console.log('-----------testing----------')
       const object = this.gizmoScene.getObjectByName(ROTATION_ARROWS_NAME);
       object?.rotation.copy(this.gizmoCamera.rotation);
 

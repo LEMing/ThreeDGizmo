@@ -17,6 +17,7 @@ import getWebGLRenderer from "../utils/getWebGLRenderer";
 import GizmoControl from "../core/GizmoControl";
 import { GizmoOptions } from "../types";
 import { useGizmoMouseEvents } from "../hooks/useGizmoMouseEvents";
+import { ROTATION_ARROWS_NAME } from "../constants";
 import "../Gizmo.css";
 
 interface GizmoProps extends HTMLAttributes<HTMLDivElement> {
@@ -78,7 +79,7 @@ const Gizmo: React.FC<GizmoProps> = ({
       camera.up.set(0, 1, 0);
       controls.target.set(0, 0, 0);
     },
-    [camera, controls, renderGizmo],
+    [camera, controls, renderGizmo, gizmoScene],
   );
 
   const { onMouseDown, onMouseMove, onMouseUp } = useGizmoMouseEvents({
@@ -139,7 +140,7 @@ const Gizmo: React.FC<GizmoProps> = ({
 
   useEffect(() => {
     if (!camera) return;
-    syncGizmoCameraWithMain(gizmoCamera, camera);
+    syncGizmoCameraWithMain(gizmoCamera, camera, gizmoScene);
     renderGizmo();
   }, [camera, renderGizmo]);
 
