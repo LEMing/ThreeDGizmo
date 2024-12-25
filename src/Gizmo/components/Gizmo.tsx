@@ -17,7 +17,6 @@ import getWebGLRenderer from "../utils/getWebGLRenderer";
 import GizmoControl from "../core/GizmoControl";
 import { GizmoOptions } from "../types";
 import { useGizmoMouseEvents } from "../hooks/useGizmoMouseEvents";
-import { ROTATION_ARROWS_NAME } from "../constants";
 import "../Gizmo.css";
 
 interface GizmoProps extends HTMLAttributes<HTMLDivElement> {

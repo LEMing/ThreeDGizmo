@@ -7,17 +7,17 @@ const HALF_PI = Math.PI / 2;
 const FULL_PI = Math.PI;
 
 // Default curve constants
-const DEFAULT_NUM_POINTS = 32;
-const DEFAULT_RADIUS = 2.2;
-const DEFAULT_TUBE_RADIUS = 0.1;
+const DEFAULT_NUM_POINTS = 64;
+const DEFAULT_RADIUS = 2;
+const DEFAULT_TUBE_RADIUS = 0.12;
 const DEFAULT_TUBE_SEGMENTS = 8;
-const DEFAULT_COLOR = 0x4169e1; // Royal Blue
+const DEFAULT_COLOR = 0x4169e1;
 
 // Arrow head constants
 const ARROW_HEAD = {
   SIZE: 0.3,
   DEPTH: 0.1,
-  HEIGHT_RATIO: 1.33, // Ratio of arrow height to width
+  HEIGHT_RATIO: 1.33,
   SEGMENTS: 1,
 } as const;
 

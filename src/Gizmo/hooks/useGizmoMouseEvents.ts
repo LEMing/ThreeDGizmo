@@ -7,12 +7,7 @@ import {
   handleClick,
 } from "../utils/mouseUtils";
 import GizmoControl from "../core/GizmoControl";
-import {
-  GIZMO_GROUP_NAME,
-  LEFT_ROTATION_ARROW_NAME,
-  RIGHT_ROTATION_ARROW_NAME,
-  ROTATION_ARROWS_NAME,
-} from "../constants";
+import { ROTATION_ARROWS_NAMES } from "../constants";
 
 interface MouseEventsProps {
   gizmoRenderer: THREE.WebGLRenderer | null;
@@ -95,21 +90,44 @@ export function useGizmoMouseEvents({
       mouse,
     ],
   );
+ 
+//   const handleRotationArrowClick = useCallback(() => {
+//     const centerPoint = new THREE.Vector3(0, 0, 0);
+//     const currentPos = gizmoCamera.position.clone();
 
-  const handleRotationArrowClick = useCallback(() => {
-    const centerPoint = new THREE.Vector3(0, 0, 0);
-    const currentPos = gizmoCamera.position.clone();
+//     const directionVector = currentPos.sub(centerPoint);
 
-    const directionVector = currentPos.sub(centerPoint);
+//     // Keep Z the same, rotate X and Y
+//     const newX = -directionVector.y;
+//     const newY = directionVector.x;
 
-    const newX = -directionVector.z;
-    const newZ = directionVector.x;
+//     gizmoCamera.position.set(newX, newY, directionVector.z);
+//     gizmoCamera.lookAt(centerPoint);
 
-    gizmoCamera.position.set(newX, directionVector.y, newZ);
-    gizmoCamera.lookAt(centerPoint);
+//     gizmoControlRef.current?.gizmoControls.update();
+// }, [gizmoCamera, gizmoControlRef]);
 
-    gizmoControlRef.current?.gizmoControls.update();
-  }, [gizmoCamera, gizmoControlRef]);
+const handleRotationArrowClick = useCallback(() => {
+  const centerPoint = new THREE.Vector3(0, 0, 0);
+  const currentPos = gizmoCamera.position.clone();
+  const directionVector = currentPos.sub(centerPoint);
+  
+  // Get current angle in radians and convert to degrees
+  const currentAngle = Math.atan2(directionVector.x, directionVector.z) * (180 / Math.PI);
+  
+  // Round to nearest 90° increment and convert back to radians
+  const snappedAngle = (Math.round((currentAngle + 90) / 90) * 90) * (Math.PI / 180);
+  
+  // Calculate new position using snapped angle
+  const radius = Math.sqrt(directionVector.x * directionVector.x + directionVector.y * directionVector.y);
+  const newX = Math.sin(snappedAngle) * radius;
+  const newY = Math.cos(snappedAngle) * radius;
+  
+  gizmoCamera.position.set(newX, newY, directionVector.z);
+  gizmoCamera.lookAt(centerPoint);
+  
+  gizmoControlRef.current?.gizmoControls.update();
+}, [gizmoCamera, gizmoControlRef]);
 
   const handleMouseUp = useCallback(
     (event: MouseEvent) => {
@@ -119,13 +137,8 @@ export function useGizmoMouseEvents({
         gizmoScene,
         raycaster,
       );
-      if (!intersectedObject) return;
 
-      if (
-        [RIGHT_ROTATION_ARROW_NAME, LEFT_ROTATION_ARROW_NAME].includes(
-          intersectedObject.name,
-        )
-      ) {
+      if (intersectedObject?.name && ROTATION_ARROWS_NAMES.includes(intersectedObject.name)) {
         handleRotationArrowClick();
       } else {
         handleCubeClick(event);
