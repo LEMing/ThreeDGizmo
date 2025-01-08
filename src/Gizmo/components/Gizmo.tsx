@@ -78,7 +78,7 @@ const Gizmo: React.FC<GizmoProps> = ({
       camera.up.set(0, 1, 0);
       controls.target.set(0, 0, 0);
     },
-    [camera, controls, renderGizmo],
+    [camera, controls, renderGizmo, gizmoScene],
   );
 
   const { onMouseDown, onMouseMove, onMouseUp } = useGizmoMouseEvents({
@@ -139,7 +139,7 @@ const Gizmo: React.FC<GizmoProps> = ({
 
   useEffect(() => {
     if (!camera) return;
-    syncGizmoCameraWithMain(gizmoCamera, camera);
+    syncGizmoCameraWithMain(gizmoCamera, camera, gizmoScene);
     renderGizmo();
   }, [camera, renderGizmo]);
 

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GizmoCube } from '../GizmoCube';
 import { CubePartFactory } from '../../factories/CubePartFactory';
-import { InitialCubeFace } from '../../constants';
+import { GIZMO_GROUP_NAME, InitialCubeFace } from '../../constants';
 
 // Mock the factory and constants
 jest.mock('../../factories/CubePartFactory');
@@ -45,7 +45,7 @@ describe('GizmoCube', () => {
   test('create method returns a THREE.Group', () => {
     const group = gizmoCube.create();
     expect(group).toBeInstanceOf(THREE.Group);
-    expect(group.name).toBe('Gizmo Group');
+    expect(group.name).toBe(GIZMO_GROUP_NAME);
   });
 
   test('createWireframe is called during create', () => {

@@ -5,7 +5,7 @@ import { MapControls } from "three/examples/jsm/controls/MapControls";
 import { addLighting } from "../utils/addLighting";
 import { GizmoCube } from "./GizmoCube";
 import { GizmoOptions } from "../types";
-import { InitialCubeFace } from "../constants";
+import { InitialCubeFace, ROTATION_ARROWS_NAME } from "../constants";
 
 interface GizmoParams {
   gizmoDiv: HTMLDivElement;
@@ -24,6 +24,7 @@ interface SyncFunctions {
   syncGizmoCameraWithMain: (
     gizmoCamera: THREE.Camera,
     mainCamera: THREE.Camera,
+    gizmoScene: THREE.Scene,
   ) => void;
   syncMainCameraWithGizmo: (
     mainCamera: THREE.Camera,
@@ -47,7 +48,7 @@ class GizmoControl {
   private mainCamera: THREE.Camera;
   private mainControls: OrbitControls | MapControls;
   private renderGizmo: () => void;
-  private gizmoControls: OrbitControls;
+  readonly gizmoControls: OrbitControls;
   private onChangeMainControlsListener: () => void = () => {};
   private onChangeGizmoControlsListener: () => void = () => {};
   private animationId: number = 0;
@@ -90,9 +91,7 @@ class GizmoControl {
     const gizmoCube = new GizmoCube({
       initialFace: this.options?.initialFace ?? InitialCubeFace.FRONT,
     }).create();
-    if (gizmoCube) {
-      this.gizmoScene.add(gizmoCube);
-    }
+    this.gizmoScene.add(gizmoCube);
     addLighting(this.gizmoScene);
   }
 
@@ -101,7 +100,9 @@ class GizmoControl {
       this.syncFunctions.syncGizmoCameraWithMain(
         this.gizmoCamera,
         this.mainCamera,
+        this.gizmoScene
       );
+
     this.mainControls.addEventListener(
       "change",
       this.onChangeMainControlsListener,
@@ -113,6 +114,9 @@ class GizmoControl {
     this.gizmoControls.update();
 
     this.onChangeGizmoControlsListener = () => {
+      const object = this.gizmoScene.getObjectByName(ROTATION_ARROWS_NAME);
+      object?.rotation.copy(this.gizmoCamera.rotation);
+
       this.syncFunctions.syncMainCameraWithGizmo(
         this.mainCamera,
         this.gizmoCamera,
@@ -120,6 +124,7 @@ class GizmoControl {
       );
       this.renderGizmo();
     };
+
     this.gizmoControls.addEventListener(
       "change",
       this.onChangeGizmoControlsListener,

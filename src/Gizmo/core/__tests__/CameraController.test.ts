@@ -7,6 +7,7 @@ import { syncGizmoCameraWithMain, syncMainCameraWithGizmo } from '../CameraContr
 describe('Camera Synchronization', () => {
   let mainCamera: THREE.PerspectiveCamera;
   let gizmoCamera: THREE.PerspectiveCamera;
+  let gizmoScene: THREE.Scene;
   let controls: OrbitControls;
   let renderer: THREE.WebGLRenderer;
 
@@ -16,13 +17,14 @@ describe('Camera Synchronization', () => {
     mainCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
     gizmoCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
     controls = new OrbitControls(mainCamera, renderer.domElement);
+    gizmoScene = new THREE.Scene();
   });
 
   test('syncGizmoCameraWithMain updates gizmo camera position and rotation', () => {
     mainCamera.position.set(10, 10, 10);
     mainCamera.lookAt(0, 0, 0);
 
-    syncGizmoCameraWithMain(gizmoCamera, mainCamera);
+    syncGizmoCameraWithMain(gizmoCamera, mainCamera, gizmoScene);
 
     expect(gizmoCamera.position.length()).toBeCloseTo(8);
     const gizmoQuaternion = gizmoCamera.quaternion.toArray();

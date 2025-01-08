@@ -1,10 +1,12 @@
 import * as THREE from "three";
 import { MapControls } from "three/examples/jsm/controls/MapControls";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { ROTATION_ARROWS_NAME } from "../constants";
 
 export const syncGizmoCameraWithMain = (
   gizmoCamera: THREE.Camera,
   mainCamera: THREE.Camera,
+  gizmoScene: THREE.Scene,
 ) => {
   // For both controls, we can synchronize the gizmo camera's quaternion with the main camera's quaternion
   gizmoCamera.quaternion.copy(mainCamera.quaternion);
@@ -20,6 +22,9 @@ export const syncGizmoCameraWithMain = (
   gizmoCamera.lookAt(new THREE.Vector3(0, 0, 0));
 
   gizmoCamera.updateMatrixWorld(true);
+
+  const object = gizmoScene.getObjectByName(ROTATION_ARROWS_NAME);
+  object?.rotation.copy(gizmoCamera.rotation);
 };
 
 export const syncMainCameraWithGizmo = (
