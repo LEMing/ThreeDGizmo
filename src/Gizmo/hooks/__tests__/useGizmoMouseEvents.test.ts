@@ -11,7 +11,9 @@ jest.mock('three', () => {
     WebGLRenderer: jest.fn().mockImplementation(() => ({
       getSize: jest.fn().mockReturnValue({ width: 800, height: 600 }),
     })),
-    Camera: jest.fn().mockImplementation(() => ({})),
+    Camera: jest.fn().mockImplementation(() => ({
+      rotation: {x: 0, y: 0, z: 0},
+    })),
     Raycaster: jest.fn().mockImplementation(() => ({
       setFromCamera: jest.fn(),
       intersectObjects: jest.fn(),

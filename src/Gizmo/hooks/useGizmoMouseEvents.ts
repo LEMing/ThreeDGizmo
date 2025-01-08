@@ -9,6 +9,7 @@ import {
 import GizmoControl from "../core/GizmoControl";
 import RotationArrows from "../core/GizmoRotationArrows";
 import { ROTATION_ARROWS_NAME } from "../constants";
+import { isCubeRotated } from "../utils/objectUtils";
 
 interface MouseEventsProps {
   gizmoRenderer: THREE.WebGLRenderer | null;
@@ -33,22 +34,9 @@ export function useGizmoMouseEvents({
   const raycaster = useRef(new THREE.Raycaster()).current;
   const mouse = useRef(new THREE.Vector2()).current;
 
-  const isCubeRotated = () => {
-    const rotation = gizmoCamera.rotation;
-    const EPSILON = 0.1;
-    const PI = Math.PI;
-    const x = ((Math.abs(rotation.x) % (2 * PI)) + 2 * PI) % (2 * PI);
-
-    const isVertical =
-      Math.abs(x - PI / 2) < EPSILON || Math.abs(x - (3 * PI) / 2) < EPSILON;
-
-    const isHorizontal = Math.abs(x) < EPSILON || Math.abs(x - PI) < EPSILON;
-    return !(isVertical || isHorizontal);
-  };
-
   const addRotationArrows = useCallback(() => {
     const existingArrows = gizmoScene.getObjectByName(ROTATION_ARROWS_NAME);
-    const isRotated = isCubeRotated();
+    const isRotated = isCubeRotated(gizmoCamera);
 
     if (existingArrows && isRotated) {
       gizmoScene.remove(existingArrows);
