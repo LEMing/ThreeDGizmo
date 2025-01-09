@@ -78,16 +78,17 @@ const Gizmo: React.FC<GizmoProps> = ({
       camera.up.set(0, 1, 0);
       controls.target.set(0, 0, 0);
     },
-    [camera, controls, renderGizmo],
+    [camera, controls, renderGizmo, gizmoScene],
   );
 
-  const { onMouseDown, onMouseMove, onMouseUp } = useGizmoMouseEvents({
-    gizmoRenderer,
-    gizmoScene,
-    gizmoCamera,
-    alignCameraWithVector,
-    gizmoControlRef,
-  });
+  const { onMouseDown, onMouseMove, onMouseUp, onMouseLeave } =
+    useGizmoMouseEvents({
+      gizmoRenderer,
+      gizmoScene,
+      gizmoCamera,
+      alignCameraWithVector,
+      gizmoControlRef,
+    });
 
   useEffect(() => {
     const gizmoDiv = gizmoRef.current;
@@ -125,6 +126,7 @@ const Gizmo: React.FC<GizmoProps> = ({
     gizmoDiv.addEventListener("mousedown", onMouseDown);
     gizmoDiv.addEventListener("mousemove", onMouseMove);
     gizmoDiv.addEventListener("mouseup", onMouseUp);
+    gizmoDiv.addEventListener("mouseleave", onMouseLeave);
 
     return () => {
       if (gizmoControlRef.current) {
@@ -134,12 +136,13 @@ const Gizmo: React.FC<GizmoProps> = ({
       gizmoDiv.removeEventListener("mousedown", onMouseDown);
       gizmoDiv.removeEventListener("mousemove", onMouseMove);
       gizmoDiv.removeEventListener("mouseup", onMouseUp);
+      gizmoDiv.removeEventListener("mouseleave", onMouseLeave);
     };
   }, [camera, controls, renderGizmo, onMouseMove, onMouseDown, onMouseUp]);
 
   useEffect(() => {
     if (!camera) return;
-    syncGizmoCameraWithMain(gizmoCamera, camera);
+    syncGizmoCameraWithMain(gizmoCamera, camera, gizmoScene);
     renderGizmo();
   }, [camera, renderGizmo]);
 
