@@ -5,7 +5,6 @@ import {
   ROTATION_ARROWS_NAME,
 } from "../constants";
 
-// Configuration interfaces
 interface ArrowConfig {
   radius?: number;
   color?: number;
@@ -22,7 +21,6 @@ interface ArrowHeadConfig {
   segments: number;
 }
 
-// Default configurations
 const DEFAULT_ARROW_CONFIG: Required<ArrowConfig> = {
   radius: 2.1,
   color: 0xbcbfbe,
@@ -39,10 +37,9 @@ const DEFAULT_ARROW_HEAD_CONFIG: ArrowHeadConfig = {
   segments: 1,
 };
 
-// Helper types
 type CurvePair = [THREE.CatmullRomCurve3, THREE.CatmullRomCurve3];
 
-class RotationArrowGeometry {
+class GizmoRotationArrows {
   private readonly config: Required<ArrowConfig>;
   private readonly material: THREE.MeshBasicMaterial;
 
@@ -156,4 +153,4 @@ class RotationArrowGeometry {
   }
 }
 
-export default RotationArrowGeometry;
+export default GizmoRotationArrows;

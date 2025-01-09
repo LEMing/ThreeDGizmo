@@ -5,6 +5,8 @@ import {
   updateMousePosition,
   checkIntersection,
   handleClick,
+  getAllIntersects,
+  getIntersectedObjects,
 } from "../utils/mouseUtils";
 import GizmoControl from "../core/GizmoControl";
 import RotationArrows from "../core/GizmoRotationArrows";
@@ -20,7 +22,7 @@ interface MouseEventsProps {
 }
 
 const MOUSE_MOVE_THROTTLE_FPS = 25;
-const CLICK_DURATION_THRESHOLD = 200; // milliseconds
+const CLICK_DURATION_THRESHOLD = 200;
 
 export function useGizmoMouseEvents({
   gizmoRenderer,
@@ -43,9 +45,7 @@ export function useGizmoMouseEvents({
       return;
     }
 
-    if (existingArrows || isRotated) {
-      return;
-    }
+    if (existingArrows || isRotated) return;
 
     const rotationArrows = new RotationArrows().create();
     rotationArrows.rotation.copy(gizmoCamera.rotation);
@@ -59,29 +59,33 @@ export function useGizmoMouseEvents({
     }
   }, [gizmoScene]);
 
-  // Core logic for mouse move event
   const handleMouseMove = useCallback(
     throttle((event: MouseEvent) => {
       if (!gizmoControlRef.current || !gizmoRenderer) return;
 
       updateMousePosition(event, gizmoRenderer, mouse);
-      const intersectedObject = checkIntersection(
+      const intersects = getAllIntersects(
         mouse,
         gizmoCamera,
         gizmoScene,
         raycaster,
       );
+      const intersectedObject = getIntersectedObjects(intersects);
 
       if (intersectedObject?.userData.gizmoCube) {
         intersectedObject.userData.gizmoCube.highlightObject(intersectedObject);
-        addRotationArrows();
       } else {
-        removeRotationArrows();
         gizmoScene.traverse((child) => {
           if (child.userData.gizmoCube) {
             child.userData.gizmoCube.highlightObject(null);
           }
         });
+      }
+
+      if (intersects.length > 0) {
+        addRotationArrows();
+      } else {
+        removeRotationArrows();
       }
     }, 1000 / MOUSE_MOVE_THROTTLE_FPS),
     [
@@ -96,13 +100,11 @@ export function useGizmoMouseEvents({
     ],
   );
 
-  // Mouse down event
   const handleMouseDown = useCallback((event: MouseEvent) => {
     clickStartTime.current = Date.now();
     clickStartPosition.current = { x: event.clientX, y: event.clientY };
   }, []);
 
-  // Mouse up event
   const handleMouseUp = useCallback(
     (event: MouseEvent) => {
       const clickDuration = clickStartTime.current
@@ -137,5 +139,6 @@ export function useGizmoMouseEvents({
     onMouseDown: handleMouseDown,
     onMouseMove: handleMouseMove,
     onMouseUp: handleMouseUp,
+    onMouseLeave: removeRotationArrows,
   };
 }

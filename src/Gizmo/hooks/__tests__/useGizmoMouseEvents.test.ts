@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import React from 'react';
 import { useGizmoMouseEvents } from '../useGizmoMouseEvents';
 import * as THREE from 'three';
-import { updateMousePosition, checkIntersection, handleClick } from '../../utils/mouseUtils';
+import { updateMousePosition, checkIntersection, handleClick, getIntersectedObjects } from '../../utils/mouseUtils';
 
 jest.mock('three', () => {
   const actualThree = jest.requireActual('three');
@@ -25,6 +25,8 @@ jest.mock('../../utils/mouseUtils', () => ({
   updateMousePosition: jest.fn(),
   checkIntersection: jest.fn(),
   handleClick: jest.fn(),
+  getAllIntersects: jest.fn().mockReturnValue([]),
+  getIntersectedObjects: jest.fn(),
 }));
 
 describe('useGizmoMouseEvents', () => {
@@ -84,7 +86,7 @@ describe('useGizmoMouseEvents', () => {
     });
 
     expect(updateMousePosition).toHaveBeenCalledWith(mouseMoveEvent, gizmoRenderer, expect.any(THREE.Vector2));
-    expect(checkIntersection).toHaveBeenCalled();
+    expect(getIntersectedObjects).toHaveBeenCalled();
   });
 
   it('should call handleClick when not rotating and click is short', () => {
@@ -182,6 +184,7 @@ describe('useGizmoMouseEvents', () => {
     };
 
     (checkIntersection as jest.Mock).mockReturnValue(intersectedObject);
+    (getIntersectedObjects as jest.Mock).mockReturnValue(intersectedObject);
 
     const { result } = renderHook(() =>
       useGizmoMouseEvents({
@@ -219,7 +222,7 @@ describe('useGizmoMouseEvents', () => {
 
     gizmoScene.children[0] = anyObject;
 
-    (checkIntersection as jest.Mock).mockReturnValue(null);
+    (getIntersectedObjects as jest.Mock).mockReturnValue(null);
 
     const { result } = renderHook(() =>
       useGizmoMouseEvents({
