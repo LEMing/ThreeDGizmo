@@ -65,6 +65,13 @@ const Gizmo: React.FC<GizmoProps> = ({
       const newPosition = vector.clone().multiplyScalar(distance);
       const CAMERA_ANIMATION_DURATION = 400;
 
+      // Create a rotation matrix that maintains upright orientation
+      const lookMatrix = new THREE.Matrix4();
+      lookMatrix.lookAt(newPosition, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+      const quaternion = new THREE.Quaternion();
+      quaternion.setFromRotationMatrix(lookMatrix);
+      camera.quaternion.copy(quaternion);
+
       animateCameraToPosition(
         camera,
         controls,
@@ -74,9 +81,10 @@ const Gizmo: React.FC<GizmoProps> = ({
         renderGizmo,
       );
 
-      camera.lookAt(new THREE.Vector3(0, 0, 0));
       camera.up.set(0, 1, 0);
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
       controls.target.set(0, 0, 0);
+      controls.update();
     },
     [camera, controls, renderGizmo, gizmoScene],
   );
