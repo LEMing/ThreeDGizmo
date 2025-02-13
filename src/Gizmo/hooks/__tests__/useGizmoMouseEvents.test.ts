@@ -3,6 +3,7 @@ import React from 'react';
 import { useGizmoMouseEvents } from '../useGizmoMouseEvents';
 import * as THREE from 'three';
 import { updateMousePosition, checkIntersection, handleClick, getIntersectedObjects } from '../../utils/mouseUtils';
+import { LEFT_ROTATION_ARROW_NAME, RIGHT_ROTATION_ARROW_NAME } from '../../constants';
 
 jest.mock('three', () => {
   const actualThree = jest.requireActual('three');
@@ -247,4 +248,161 @@ describe('useGizmoMouseEvents', () => {
     expect(mockGizmoCube.highlightObject).toHaveBeenCalledWith(null);
   });
 
+});
+
+describe('handleRotationArrowClick', () => {
+  let gizmoRenderer: THREE.WebGLRenderer;
+  let gizmoScene: THREE.Scene;
+  let gizmoCamera: THREE.Camera;
+  let alignCameraWithVector: jest.Mock;
+  let gizmoControlRef: React.MutableRefObject<any>;
+  let mockUpdate: jest.Mock;
+
+  beforeEach(() => {
+    mockUpdate = jest.fn();
+    gizmoRenderer = new THREE.WebGLRenderer();
+    gizmoScene = new THREE.Scene();
+    gizmoCamera = new THREE.Camera();
+    alignCameraWithVector = jest.fn();
+    gizmoControlRef = { 
+      current: {
+        gizmoControls: {
+          update: mockUpdate
+        }
+      }
+    };
+
+    // Setup initial camera properties
+    gizmoCamera.up = new THREE.Vector3(0, 1, 0);
+    gizmoCamera.lookAt = jest.fn();
+
+    jest.clearAllMocks();
+  });
+
+  it('should rotate camera 90 degrees clockwise when right arrow is clicked', () => {
+    const { result } = renderHook(() =>
+      useGizmoMouseEvents({
+        gizmoRenderer,
+        gizmoScene,
+        gizmoCamera,
+        alignCameraWithVector,
+        gizmoControlRef,
+      })
+    );
+
+    jest.spyOn(Date, 'now')
+      .mockReturnValueOnce(1000)
+      .mockReturnValueOnce(1100);
+
+    const rightArrow = new THREE.Object3D();
+    rightArrow.name = RIGHT_ROTATION_ARROW_NAME;
+
+    (checkIntersection as jest.Mock).mockReturnValue(rightArrow);
+
+    act(() => {
+      result.current.onMouseDown(new MouseEvent('mousedown'));
+      result.current.onMouseUp(new MouseEvent('mouseup'));
+    });
+
+    // Verify camera was rotated correctly
+    expect(gizmoCamera.lookAt).toHaveBeenCalledWith(new THREE.Vector3(0, 0, 0));
+    expect(mockUpdate).toHaveBeenCalled();
+
+    // Verify camera up vector was transformed
+    expect(Math.abs(gizmoCamera.up.x + 1)).toBeLessThan(0.001); // ≈ -1
+    expect(Math.abs(gizmoCamera.up.y)).toBeLessThan(0.001);     // ≈ 0
+    expect(Math.abs(gizmoCamera.up.z)).toBeLessThan(0.001);     // ≈ 0
+  });
+
+  it('should rotate camera 90 degrees counterclockwise when left arrow is clicked', () => {
+    const { result } = renderHook(() =>
+      useGizmoMouseEvents({
+        gizmoRenderer,
+        gizmoScene,
+        gizmoCamera,
+        alignCameraWithVector,
+        gizmoControlRef,
+      })
+    );
+
+    jest.spyOn(Date, 'now')
+      .mockReturnValueOnce(1000)
+      .mockReturnValueOnce(1100);
+
+    const leftArrow = new THREE.Object3D();
+    leftArrow.name = LEFT_ROTATION_ARROW_NAME;
+
+    (checkIntersection as jest.Mock).mockReturnValue(leftArrow);
+
+    act(() => {
+      result.current.onMouseDown(new MouseEvent('mousedown'));
+      result.current.onMouseUp(new MouseEvent('mouseup'));
+    });
+
+    // Verify camera was rotated correctly
+    expect(gizmoCamera.lookAt).toHaveBeenCalledWith(new THREE.Vector3(0, 0, 0));
+    expect(mockUpdate).toHaveBeenCalled();
+
+    // Verify camera up vector was transformed
+    expect(Math.abs(gizmoCamera.up.x - 1)).toBeLessThan(0.001); // ≈ 1
+    expect(Math.abs(gizmoCamera.up.y)).toBeLessThan(0.001);     // ≈ 0
+    expect(Math.abs(gizmoCamera.up.z)).toBeLessThan(0.001);     // ≈ 0
+  });
+
+  it('should not rotate camera if click duration exceeds threshold', () => {
+    const { result } = renderHook(() =>
+      useGizmoMouseEvents({
+        gizmoRenderer,
+        gizmoScene,
+        gizmoCamera,
+        alignCameraWithVector,
+        gizmoControlRef,
+      })
+    );
+
+    jest.spyOn(Date, 'now')
+      .mockReturnValueOnce(1000)
+      .mockReturnValueOnce(1300);
+
+    const rightArrow = new THREE.Object3D();
+    rightArrow.name = RIGHT_ROTATION_ARROW_NAME;
+    (checkIntersection as jest.Mock).mockReturnValue(rightArrow);
+
+    const initialUp = gizmoCamera.up.clone();
+
+    act(() => {
+      result.current.onMouseDown(new MouseEvent('mousedown'));
+      result.current.onMouseUp(new MouseEvent('mouseup'));
+    });
+
+    expect(gizmoCamera.up).toEqual(initialUp);
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  it('should update gizmoControls after rotation', () => {
+    const { result } = renderHook(() =>
+      useGizmoMouseEvents({
+        gizmoRenderer,
+        gizmoScene,
+        gizmoCamera,
+        alignCameraWithVector,
+        gizmoControlRef,
+      })
+    );
+
+    jest.spyOn(Date, 'now')
+      .mockReturnValueOnce(1000)
+      .mockReturnValueOnce(1100);
+
+    const rightArrow = new THREE.Object3D();
+    rightArrow.name = RIGHT_ROTATION_ARROW_NAME;
+    (checkIntersection as jest.Mock).mockReturnValue(rightArrow);
+
+    act(() => {
+      result.current.onMouseDown(new MouseEvent('mousedown'));
+      result.current.onMouseUp(new MouseEvent('mouseup'));
+    });
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
+  });
 });

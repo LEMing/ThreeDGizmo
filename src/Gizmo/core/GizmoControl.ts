@@ -100,7 +100,7 @@ class GizmoControl {
       this.syncFunctions.syncGizmoCameraWithMain(
         this.gizmoCamera,
         this.mainCamera,
-        this.gizmoScene
+        this.gizmoScene,
       );
 
     this.mainControls.addEventListener(

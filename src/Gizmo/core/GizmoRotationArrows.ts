@@ -63,8 +63,12 @@ class GizmoRotationArrows {
     const midPoint = Math.floor(points.length / 2);
 
     return [
-      new THREE.CatmullRomCurve3(points.slice(0, midPoint - this.config.tubeOffset)),
-      new THREE.CatmullRomCurve3(points.slice(midPoint + this.config.tubeOffset)),
+      new THREE.CatmullRomCurve3(
+        points.slice(0, midPoint - this.config.tubeOffset),
+      ),
+      new THREE.CatmullRomCurve3(
+        points.slice(midPoint + this.config.tubeOffset),
+      ),
     ];
   }
 

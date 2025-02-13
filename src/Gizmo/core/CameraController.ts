@@ -16,18 +16,16 @@ const CAMERA_SETTINGS = {
   GIZMO_DISTANCE: 8,
   DEFAULT_UP: new THREE.Vector3(0, 1, 0),
   FORWARD: new THREE.Vector3(0, 0, -1),
-} as const;
+};
 
-
-const getForwardDirection = (quaternion: THREE.Quaternion): THREE.Vector3 => 
+const getForwardDirection = (quaternion: THREE.Quaternion): THREE.Vector3 =>
   CAMERA_SETTINGS.FORWARD.clone().applyQuaternion(quaternion);
 
 const calculateCameraPosition = (
   direction: THREE.Vector3,
   distance: number,
   target: THREE.Vector3 = new THREE.Vector3(),
-): THREE.Vector3 => 
-  target.clone().add(direction.multiplyScalar(-distance));
+): THREE.Vector3 => target.clone().add(direction.multiplyScalar(-distance));
 
 class CameraSynchronizer {
   constructor(
@@ -42,7 +40,7 @@ class CameraSynchronizer {
     // Calculate and set position
     const direction = getForwardDirection(gizmo.quaternion).normalize();
     gizmo.position.copy(
-      calculateCameraPosition(direction, CAMERA_SETTINGS.GIZMO_DISTANCE)
+      calculateCameraPosition(direction, CAMERA_SETTINGS.GIZMO_DISTANCE),
     );
 
     // Update gizmo camera
@@ -83,15 +81,15 @@ class CameraSynchronizer {
     distance: number,
   ): void {
     const currentHeight = main.position.y - target.y;
-    
+
     const forward = getForwardDirection(gizmo.quaternion);
     forward.y = 0;
     forward.normalize();
-    
+
     const newPosition = target.clone();
     newPosition.y += currentHeight;
     newPosition.add(forward.multiplyScalar(-distance));
-    
+
     main.position.copy(newPosition);
     main.up.copy(CAMERA_SETTINGS.DEFAULT_UP);
     main.camera.lookAt(target);
@@ -104,18 +102,21 @@ class CameraSynchronizer {
     distance: number,
   ): void {
     const forward = getForwardDirection(gizmo.quaternion);
-    const up = CAMERA_SETTINGS.DEFAULT_UP.clone().applyQuaternion(gizmo.quaternion);
-    
+    const up = CAMERA_SETTINGS.DEFAULT_UP.clone().applyQuaternion(
+      gizmo.quaternion,
+    );
+
     const newPosition = calculateCameraPosition(forward, distance, target);
-    
+
     main.position.copy(newPosition);
     main.up.copy(up);
     main.camera.lookAt(target);
   }
 }
 
-export const createCameraSynchronizer = (gizmoScene: THREE.Scene): CameraSynchronizer => 
-  new CameraSynchronizer(gizmoScene);
+export const createCameraSynchronizer = (
+  gizmoScene: THREE.Scene,
+): CameraSynchronizer => new CameraSynchronizer(gizmoScene);
 
 export const syncGizmoCameraWithMain = (
   gizmoCamera: THREE.Camera,
@@ -124,8 +125,18 @@ export const syncGizmoCameraWithMain = (
 ): void => {
   const synchronizer = createCameraSynchronizer(gizmoScene);
   synchronizer.syncGizmoWithMain(
-    { camera: gizmoCamera, position: gizmoCamera.position, quaternion: gizmoCamera.quaternion, up: gizmoCamera.up },
-    { camera: mainCamera, position: mainCamera.position, quaternion: mainCamera.quaternion, up: mainCamera.up },
+    {
+      camera: gizmoCamera,
+      position: gizmoCamera.position,
+      quaternion: gizmoCamera.quaternion,
+      up: gizmoCamera.up,
+    },
+    {
+      camera: mainCamera,
+      position: mainCamera.position,
+      quaternion: mainCamera.quaternion,
+      up: mainCamera.up,
+    },
   );
 };
 
@@ -136,8 +147,18 @@ export const syncMainCameraWithGizmo = (
 ): void => {
   const synchronizer = createCameraSynchronizer(gizmoCamera.userData.scene);
   synchronizer.syncMainWithGizmo(
-    { camera: mainCamera, position: mainCamera.position, quaternion: mainCamera.quaternion, up: mainCamera.up },
-    { camera: gizmoCamera, position: gizmoCamera.position, quaternion: gizmoCamera.quaternion, up: gizmoCamera.up },
+    {
+      camera: mainCamera,
+      position: mainCamera.position,
+      quaternion: mainCamera.quaternion,
+      up: mainCamera.up,
+    },
+    {
+      camera: gizmoCamera,
+      position: gizmoCamera.position,
+      quaternion: gizmoCamera.quaternion,
+      up: gizmoCamera.up,
+    },
     controls,
   );
 };
