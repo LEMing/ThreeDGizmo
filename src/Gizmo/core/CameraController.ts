@@ -3,56 +3,162 @@ import { MapControls } from "three/examples/jsm/controls/MapControls";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { ROTATION_ARROWS_NAME } from "../constants";
 
+type CameraControls = OrbitControls | MapControls;
+
+interface CameraSystem {
+  camera: THREE.Camera;
+  position: THREE.Vector3;
+  quaternion: THREE.Quaternion;
+  up: THREE.Vector3;
+}
+
+const CAMERA_SETTINGS = {
+  GIZMO_DISTANCE: 8,
+  DEFAULT_UP: new THREE.Vector3(0, 1, 0),
+  FORWARD: new THREE.Vector3(0, 0, -1),
+};
+
+const getForwardDirection = (quaternion: THREE.Quaternion): THREE.Vector3 =>
+  CAMERA_SETTINGS.FORWARD.clone().applyQuaternion(quaternion);
+
+const calculateCameraPosition = (
+  direction: THREE.Vector3,
+  distance: number,
+  target: THREE.Vector3 = new THREE.Vector3(),
+): THREE.Vector3 => target.clone().add(direction.multiplyScalar(-distance));
+
+class CameraSynchronizer {
+  constructor(
+    private readonly gizmoScene: THREE.Scene,
+    private readonly gizmoArrowsName: string = ROTATION_ARROWS_NAME,
+  ) {}
+
+  syncGizmoWithMain(gizmo: CameraSystem, main: CameraSystem): void {
+    // Sync rotation
+    gizmo.quaternion.copy(main.quaternion);
+
+    // Calculate and set position
+    const direction = getForwardDirection(gizmo.quaternion).normalize();
+    gizmo.position.copy(
+      calculateCameraPosition(direction, CAMERA_SETTINGS.GIZMO_DISTANCE),
+    );
+
+    // Update gizmo camera
+    gizmo.camera.lookAt(new THREE.Vector3(0, 0, 0));
+    gizmo.camera.updateMatrixWorld(true);
+
+    // Update rotation arrows if they exist
+    const arrows = this.gizmoScene.getObjectByName(this.gizmoArrowsName);
+    if (arrows) {
+      arrows.rotation.copy(gizmo.camera.rotation);
+    }
+  }
+
+  syncMainWithGizmo(
+    main: CameraSystem,
+    gizmo: CameraSystem,
+    controls: CameraControls,
+  ): void {
+    const target = controls.target.clone();
+    const currentDistance = main.position.distanceTo(target);
+
+    if (controls instanceof MapControls) {
+      this.syncMapControls(main, gizmo, target, currentDistance);
+    } else {
+      this.syncOrbitControls(main, gizmo, target, currentDistance);
+    }
+
+    // Finalize updates
+    main.camera.updateMatrix();
+    main.camera.updateMatrixWorld(true);
+    controls.update();
+  }
+
+  private syncMapControls(
+    main: CameraSystem,
+    gizmo: CameraSystem,
+    target: THREE.Vector3,
+    distance: number,
+  ): void {
+    const currentHeight = main.position.y - target.y;
+
+    const forward = getForwardDirection(gizmo.quaternion);
+    forward.y = 0;
+    forward.normalize();
+
+    const newPosition = target.clone();
+    newPosition.y += currentHeight;
+    newPosition.add(forward.multiplyScalar(-distance));
+
+    main.position.copy(newPosition);
+    main.up.copy(CAMERA_SETTINGS.DEFAULT_UP);
+    main.camera.lookAt(target);
+  }
+
+  private syncOrbitControls(
+    main: CameraSystem,
+    gizmo: CameraSystem,
+    target: THREE.Vector3,
+    distance: number,
+  ): void {
+    const forward = getForwardDirection(gizmo.quaternion);
+    const up = CAMERA_SETTINGS.DEFAULT_UP.clone().applyQuaternion(
+      gizmo.quaternion,
+    );
+
+    const newPosition = calculateCameraPosition(forward, distance, target);
+
+    main.position.copy(newPosition);
+    main.up.copy(up);
+    main.camera.lookAt(target);
+  }
+}
+
+export const createCameraSynchronizer = (
+  gizmoScene: THREE.Scene,
+): CameraSynchronizer => new CameraSynchronizer(gizmoScene);
+
 export const syncGizmoCameraWithMain = (
   gizmoCamera: THREE.Camera,
   mainCamera: THREE.Camera,
   gizmoScene: THREE.Scene,
-) => {
-  // For both controls, we can synchronize the gizmo camera's quaternion with the main camera's quaternion
-  gizmoCamera.quaternion.copy(mainCamera.quaternion);
-
-  // Position the gizmo camera at a fixed distance along the main camera's forward direction
-  const gizmoDistance = 8; // You can adjust this distance as needed
-  const gizmoDirection = new THREE.Vector3(0, 0, -1)
-    .applyQuaternion(gizmoCamera.quaternion)
-    .normalize();
-  gizmoCamera.position.copy(gizmoDirection.multiplyScalar(-gizmoDistance));
-
-  // Ensure the gizmo camera looks at the origin
-  gizmoCamera.lookAt(new THREE.Vector3(0, 0, 0));
-
-  gizmoCamera.updateMatrixWorld(true);
-
-  const object = gizmoScene.getObjectByName(ROTATION_ARROWS_NAME);
-  object?.rotation.copy(gizmoCamera.rotation);
+): void => {
+  const synchronizer = createCameraSynchronizer(gizmoScene);
+  synchronizer.syncGizmoWithMain(
+    {
+      camera: gizmoCamera,
+      position: gizmoCamera.position,
+      quaternion: gizmoCamera.quaternion,
+      up: gizmoCamera.up,
+    },
+    {
+      camera: mainCamera,
+      position: mainCamera.position,
+      quaternion: mainCamera.quaternion,
+      up: mainCamera.up,
+    },
+  );
 };
 
 export const syncMainCameraWithGizmo = (
   mainCamera: THREE.Camera,
   gizmoCamera: THREE.Camera,
-  controls: OrbitControls | MapControls,
-) => {
-  // Get the current target from the controls
-  const target = controls.target.clone();
-
-  // Calculate the offset vector from the camera to the target
-  const offset = mainCamera.position.clone().sub(target);
-  const distance = offset.length();
-
-  // Create a unit vector pointing along the gizmo camera's forward direction
-  const gizmoDirection = new THREE.Vector3(0, 0, -1)
-    .applyQuaternion(gizmoCamera.quaternion)
-    .normalize();
-
-  // Scale the direction vector by the distance to maintain the same distance from the target
-  const newOffset = gizmoDirection.multiplyScalar(-distance);
-
-  // Update the main camera's position and quaternion
-  mainCamera.position.copy(target).add(newOffset);
-  mainCamera.quaternion.copy(gizmoCamera.quaternion);
-
-  mainCamera.updateMatrixWorld(true);
-
-  // Update controls (this is important for MapControls to reflect the new camera position)
-  controls.update();
+  controls: CameraControls,
+): void => {
+  const synchronizer = createCameraSynchronizer(gizmoCamera.userData.scene);
+  synchronizer.syncMainWithGizmo(
+    {
+      camera: mainCamera,
+      position: mainCamera.position,
+      quaternion: mainCamera.quaternion,
+      up: mainCamera.up,
+    },
+    {
+      camera: gizmoCamera,
+      position: gizmoCamera.position,
+      quaternion: gizmoCamera.quaternion,
+      up: gizmoCamera.up,
+    },
+    controls,
+  );
 };

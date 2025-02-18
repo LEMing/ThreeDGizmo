@@ -10,7 +10,11 @@ import {
 } from "../utils/mouseUtils";
 import GizmoControl from "../core/GizmoControl";
 import RotationArrows from "../core/GizmoRotationArrows";
-import { ROTATION_ARROWS_NAME } from "../constants";
+import {
+  RIGHT_ROTATION_ARROW_NAME,
+  ROTATION_ARROWS_NAME,
+  ROTATION_ARROWS_NAMES,
+} from "../constants";
 import { isCubeRotated } from "../utils/objectUtils";
 
 interface MouseEventsProps {
@@ -105,6 +109,25 @@ export function useGizmoMouseEvents({
     clickStartPosition.current = { x: event.clientX, y: event.clientY };
   }, []);
 
+  const handleRotationArrowClick = useCallback(
+    (object: THREE.Object3D) => {
+      const rotationDirection =
+        object.name === RIGHT_ROTATION_ARROW_NAME ? 1 : -1;
+      const ROTATION_ANGLE_DEG = 90;
+      const ROTATION_ANGLE_RAD = (ROTATION_ANGLE_DEG * Math.PI) / 180;
+      const CENTER_POINT = new THREE.Vector3(0, 0, 0);
+      const radians = rotationDirection * ROTATION_ANGLE_RAD;
+
+      const rotationMatrix = new THREE.Matrix4();
+      rotationMatrix.makeRotationZ(radians);
+
+      gizmoCamera.up.applyMatrix4(rotationMatrix);
+      gizmoCamera.lookAt(CENTER_POINT);
+      gizmoControlRef.current?.gizmoControls.update();
+    },
+    [gizmoCamera, gizmoControlRef],
+  );
+
   const handleMouseUp = useCallback(
     (event: MouseEvent) => {
       const clickDuration = clickStartTime.current
@@ -119,13 +142,22 @@ export function useGizmoMouseEvents({
           gizmoScene,
           raycaster,
         );
-        handleClick(intersectedObject, alignCameraWithVector);
+
+        if (
+          intersectedObject?.name &&
+          ROTATION_ARROWS_NAMES.includes(intersectedObject.name)
+        ) {
+          handleRotationArrowClick(intersectedObject);
+        } else {
+          handleClick(intersectedObject, alignCameraWithVector);
+        }
       }
 
       clickStartTime.current = null;
       clickStartPosition.current = null;
     },
     [
+      handleRotationArrowClick,
       alignCameraWithVector,
       gizmoRenderer,
       gizmoCamera,

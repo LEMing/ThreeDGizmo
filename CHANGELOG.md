@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.8.0
+---
+* Allow gizmo rotation along z-axis using rotation arrows
+
 0.7.0
 ---
 * Create rotation arrow objects for gizmo cube
