@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.0.0
+---
+* Refactor the project structure to follow a clean architecture approach
+
 0.8.0
 ---
 * Allow gizmo rotation along z-axis using rotation arrows
