@@ -1,0 +1,56 @@
+.custom-gizmo-style {
+  width: 360px;
+  height: 360px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.map-gizmo-style {
+  width: 96px;
+  height: 96px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.cad-gizmo-style {
+  width: 96px;
+  height: 96px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.example-container {
+  position: relative;
+  width: 640px;
+  height: 360px;
+  background-color: #3d5361;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+body {
+  background-color: #f0f0f0;
+  margin: 0;
+  padding: 0;
+}
+
+.content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.example-select {
+  margin-bottom: 24px;
+}
