@@ -34,17 +34,18 @@ class CameraSynchronizer {
   ) {}
 
   syncGizmoWithMain(gizmo: CameraSystem, main: CameraSystem): void {
-    // Sync rotation
+    // Sync full orientation from main camera
     gizmo.quaternion.copy(main.quaternion);
+    gizmo.up.copy(main.up);
 
-    // Calculate and set position
+    // Calculate and set position based on orientation
+    // This places the camera behind the origin relative to its forward direction
     const direction = getForwardDirection(gizmo.quaternion).normalize();
     gizmo.position.copy(
       calculateCameraPosition(direction, CAMERA_SETTINGS.GIZMO_DISTANCE),
     );
 
-    // Update gizmo camera
-    gizmo.camera.lookAt(new THREE.Vector3(0, 0, 0));
+    // Update world matrix (don't use lookAt as it would overwrite the quaternion)
     gizmo.camera.updateMatrixWorld(true);
 
     // Update rotation arrows if they exist
@@ -62,7 +63,10 @@ class CameraSynchronizer {
     const target = controls.target.clone();
     const currentDistance = main.position.distanceTo(target);
 
-    if (controls instanceof MapControls) {
+    // Use orbit controls sync for perspective cameras (allows full rotation)
+    // Use map controls sync for orthographic cameras (restricts to horizontal rotation)
+    const isPerspectiveCamera = main.camera instanceof THREE.PerspectiveCamera;
+    if (controls instanceof MapControls && !isPerspectiveCamera) {
       this.syncMapControls(main, gizmo, target, currentDistance);
     } else {
       this.syncOrbitControls(main, gizmo, target, currentDistance);

@@ -84,6 +84,17 @@ class GizmoControl {
       this.gizmoDiv.clientWidth,
       this.gizmoDiv.clientHeight,
     );
+
+    // Update camera aspect ratio to match container dimensions
+    const aspect = this.gizmoDiv.clientWidth / this.gizmoDiv.clientHeight;
+    this.gizmoCamera.aspect = aspect;
+    this.gizmoCamera.updateProjectionMatrix();
+
+    // Apply up vector from options if provided
+    if (this.options?.up) {
+      this.gizmoCamera.up.copy(this.options.up);
+    }
+
     this.gizmoDiv.appendChild(this.gizmoRenderer.domElement);
   }
 

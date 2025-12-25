@@ -18,7 +18,7 @@ const CADLikeScene: React.FC = () => {
     setCamera(newCamera);
     const renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(640, 360);
-    renderer.pixelRatio = window.devicePixelRatio;
+    renderer.setPixelRatio(window.devicePixelRatio);
     // Append renderer to div
     divRef.current.appendChild(renderer.domElement);
 
