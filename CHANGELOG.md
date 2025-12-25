@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.1.0
+---
+* Fix gizmo camera rotation synchronization
+
 1.0.0
 ---
 * Refactor the project structure to follow a clean architecture approach

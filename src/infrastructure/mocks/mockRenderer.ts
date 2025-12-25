@@ -1,8 +1,4 @@
-import * as THREE from 'three';
-
-
-// eslint-disable-next-line import/namespace
-class renderer implements THREE.Renderer {
+class renderer {
   domElement: HTMLCanvasElement;
   public shadowMap: {
     enabled: boolean;
