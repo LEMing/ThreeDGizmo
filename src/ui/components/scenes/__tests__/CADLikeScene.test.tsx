@@ -168,7 +168,7 @@ describe('CADLikeScene component', () => {
           up: expect.any(THREE.Vector3)
         })
       }),
-      expect.anything()
+      undefined
     );
   });
 });
