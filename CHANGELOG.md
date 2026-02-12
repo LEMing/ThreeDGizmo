@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.2.0
+---
+* Add React 19 support
+* Update `@testing-library/react` to v16 for React 19 compatibility
+* Fix test assertions for React 19 component call signature
+
 1.1.0
 ---
 * Fix gizmo camera rotation synchronization
