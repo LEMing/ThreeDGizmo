@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.2.1
+---
+* Loosen Three.js peer dependency pins
+
 1.2.0
 ---
 * Add React 19 support
