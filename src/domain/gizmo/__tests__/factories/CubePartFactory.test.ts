@@ -25,7 +25,9 @@ describe("CubePartFactory", () => {
         return document.createElement(tagName);
       });
 
-    jest.spyOn(mockCanvas, "getContext").mockImplementation(() => mockContext);
+    (jest.spyOn(mockCanvas, "getContext") as jest.Mock).mockReturnValue(
+      mockContext,
+    );
   });
 
   afterEach(() => {

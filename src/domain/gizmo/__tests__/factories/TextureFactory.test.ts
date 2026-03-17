@@ -29,9 +29,9 @@ describe("TextureFactory", () => {
       fillText: jest.fn(),
     };
 
-    jest
-      .spyOn(mockCanvas, "getContext")
-      .mockReturnValue(mockContext as CanvasRenderingContext2D);
+    (jest.spyOn(mockCanvas, "getContext") as jest.Mock).mockReturnValue(
+      mockContext,
+    );
     spyCreateElement.mockReturnValue(mockCanvas);
 
     // Act
